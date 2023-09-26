@@ -1,6 +1,5 @@
 COLUMN_MAPPING = {
     "DunBradstreet": {
-        "T_DNB_RAW": "table_name",
         "FIRMENNUMMER": "BisnodeID",
         "STATUS": "Status",
         "FIRMENNAME": "Firmenname",

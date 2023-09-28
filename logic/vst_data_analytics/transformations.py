@@ -9,9 +9,7 @@ def rename_columns(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
 
 
 def replace_nan(df: pd.DataFrame) -> pd.DataFrame:
-    df.replace("None", np.NaN).replace("nan", np.NaN)
-
-    return df
+    return df.replace("None", np.NaN).replace("nan", np.NaN)
 
 
 def index_data(df: pd.DataFrame, name) -> pd.DataFrame:

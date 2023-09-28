@@ -1,4 +1,5 @@
 import numpy as np
+from pyspark.sql.types import IntegerType, FloatType
 
 COLUMN_MAPPING = {
     "DunBradstreet": {
@@ -32,6 +33,31 @@ COLUMN_MAPPING = {
         "RECHTSFORM_TEXT": "Rechtsform",
         "EHEMALIGER_FIRMENNAME": "Ehemaliger_Firmenname",
         "HANDELSREGISTER": "Register",
+    }
+}
+
+COLUMN_TYPE_MAPPING = {
+    "DunBradstreet": {
+        "FIRMENNUMMER": IntegerType(),
+        "FIRMENZENTRALE_NUMMER": IntegerType(),
+        "DNB_D_U_N_S_NUMMER": IntegerType(),
+        "PLZ_STRASSE": IntegerType(),
+        "POSTFACH": IntegerType(),
+        "PLZ_POSTFACH": IntegerType(),
+        "GKZ": IntegerType(),
+        "VORWAHL_TELEFON": IntegerType(),
+        "TELEFON": IntegerType(),
+        "UMSATZ": FloatType(),
+        "UMSATZ_JAHR": IntegerType(),
+        "SEGMENT_DICC": IntegerType(),
+        "HAUPTBRANCHE_08": IntegerType(),
+        "ANZAHL_NIEDERLASSUNGEN": IntegerType(),
+        "ANZAHL_KONZERNMITGLIEDER": IntegerType(),
+        "BESCHAEFTIGTE": IntegerType(),
+        "DIREKTE_MUTTER_NUMMER": IntegerType(),
+        "HoechsteMutterNummer_0": IntegerType(),
+        "AZ_LAENGENGRAD": FloatType(),
+        "AZ_BREITENGRAD": FloatType()
     }
 }
 

@@ -35,4 +35,5 @@ def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
         _model_data[_idx_name_copy] = _model_data[name]
     _model_data = _model_data.set_index(_idx_name_copy, verify_integrity=True)
     
-    return [_model_data]
+    return _model_data
+    

@@ -58,3 +58,303 @@ def AUR110(df: pd.DataFrame) -> pd.DataFrame:
         HNR=lambda x: np.where(x.HNR.isna(), x.Direkte_Mutter_Nummer, x.HNR),
     )
 
+
+def AAR10(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
+    return df.assign(Rechtsform=lambda x: x.Rechtsform.replace(mapping))
+
+
+def AAR050(df: pd.DataFrame) -> pd.DataFrame:
+    return df.assign(
+        Anzahl_Niederlassungen=lambda x: x.Anzahl_Niederlassungen.replace({"None": np.nan}).astype(np.float32),
+    )
+
+
+def get_umsatz_score(df_bisnode: pd.DataFrame) -> pd.DataFrame:
+    df = df_bisnode.replace("None", np.NaN).assign(Umsatz=lambda x: x.Umsatz.astype(np.float32)).assign(
+        Umsatz_Score=lambda x: pd.cut(
+            x.Umsatz, bins=[-np.inf, 10, 50, 250, 500, np.inf], labels=[1, 2, 3, 4, 5]
+        ).astype(np.float32),
+        Umsatz_Code=lambda x: pd.cut(
+            x.Umsatz,
+            bins=[-np.inf, 0.1, 0.25, 0.5, 2.5, 5, 25, 50, 500, np.inf],
+            labels=["01", "02", "03", "04", "05", "06", "07", "08", "09"],
+        ),
+    )
+    g = df.groupby(["Umsatz_Code"])
+    # Ziel: In jeder Staffel den gemittelten Durchschnitt von den entsprechenden Bisnode-Werten berechnen
+    return pd.DataFrame(
+        {"Umsatz": g.Umsatz.mean(), "Umsatz_Score": g.Umsatz_Score.mean()}
+    )
+
+
+def get_beschaeftigte_score(df_bisnode: pd.DataFrame) -> pd.DataFrame:
+    df = df_bisnode.replace("None", np.NaN).assign(Beschaeftigte=lambda x: x.Beschaeftigte.astype(np.float32)).assign(
+        Beschaeftigte_Score=lambda x: pd.cut(
+            x.Beschaeftigte,
+            bins=[-np.inf, 10, 50, 250, 999, np.inf],
+            labels=[1, 2, 3, 4, 5],
+        ).astype(np.float32),
+        Beschaeftigte_Code=lambda x: pd.cut(
+            x.Beschaeftigte,
+            bins=[0, 4, 9, 19, 49, 99, 199, 499, 999, 1999, np.inf],
+            labels=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
+        ),
+    )
+    g = df.groupby(["Beschaeftigte_Code"])
+    # Ziel: In jeder Staffel den gemittelten Durchschnitt von den entsprechenden Bisnode-Werten berechnen
+    return pd.DataFrame({
+        "Beschaeftigte": g.Beschaeftigte.mean(),
+        "Beschaeftigte_Score": g.Beschaeftigte_Score.mean(),
+    })
+
+
+def AAR051(df_left: pd.DataFrame, df_right: pd.DataFrame) -> pd.DataFrame:
+    _index_name: str = df_left.index.name
+    _result: pd.DataFrame = None
+    if _index_name is None:
+        _result = df_left.merge(
+            get_umsatz_score(df_right), how="left", on="Umsatz_Code"
+        ).merge(
+            get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code"
+        ) 
+    else:
+        _result = df_left.reset_index().merge(
+            get_umsatz_score(df_right), how="left", on="Umsatz_Code"
+        ).merge(
+            get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code"
+        ).set_index(_index_name)
+    
+    return _result
+
+
+def AAR053(df: pd.DataFrame) -> pd.DataFrame:
+    return df.assign(Umsatz_pro_Mitarbeiter=lambda x: x.Umsatz / x.Beschaeftigte)
+
+
+def AAR054(df: pd.DataFrame) -> pd.DataFrame:
+    df["Umsatz_pro_Mitarbeiter_Score"] = pd.cut(
+        df.Umsatz_pro_Mitarbeiter,
+        bins=[0, 0.1, 0.2, 0.3, 0.5, np.inf],
+        labels=[1, 2, 3, 4, 5],
+    ).astype(np.float32)
+
+    return df
+
+
+def AAR055(df: pd.DataFrame) -> pd.DataFrame:
+    df["Niederlassungs_Score"] = pd.cut(
+        df.Anzahl_Niederlassungen,
+        bins=[0, 1, 2, 5, 10, np.inf],
+        labels=[1, 2, 3, 4, 5],
+    ).astype(np.float32)
+
+    return df
+
+
+def AAR056(df: pd.DataFrame) -> pd.DataFrame:
+    return df.assign(
+        Anzahl_Konzernmitglieder=lambda x: x.groupby(["HNR"])["HNR"].transform(
+            "count"
+        ).astype(np.float32)
+    )
+
+
+def AAR057(df: pd.DataFrame) -> pd.DataFrame:
+    df["Konzernmitglieder_Score"] = pd.cut(
+        df.Anzahl_Konzernmitglieder,
+        bins=[0, 4, 50, 100, 200, np.inf],
+        labels=[1, 2, 3, 4, 5],
+    ).astype(np.float32)
+
+    return df
+
+
+def AAR058(df: pd.DataFrame) -> pd.DataFrame:
+    for col in [
+        "Umsatz_Score",
+        "Beschaeftigte_Score",
+        "Umsatz_pro_Mitarbeiter_Score",
+        "Niederlassungs_Score",
+        "Konzernmitglieder_Score",
+        "Industry_Score",
+    ]:
+        df[col].fillna(1, inplace=True)
+
+    df["Gesamt_Score"] = (
+            df["Umsatz_Score"] * 0.2
+            + df["Beschaeftigte_Score"] * 0.2
+            + df["Umsatz_pro_Mitarbeiter_Score"] * 0.1
+            + df["Niederlassungs_Score"] * 0.1
+            + df["Konzernmitglieder_Score"] * 0.2
+            + df["Industry_Score"] * 0.2
+    ).astype(np.float32)
+
+    return df
+
+
+def _add_segment_data(df: pd.DataFrame) -> pd.DataFrame:
+    df["Segment"] = pd.cut(
+        df.Gesamt_Score,
+        bins=[0, 2, 3.5, 5],
+        labels=[3, 2, 1],
+    ).astype(np.float32)
+
+    return df
+
+
+def _rule_segment_anzahl_konzernmitglieder(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[
+        (df["Segment"] == 3) & (df["Anzahl_Konzernmitglieder"] > 1),
+        "Segment",
+    ] = 2
+    return df
+
+
+def _rule_segment_anzahl_niederlassungen(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[
+        (df["Segment"] == 3) & (df["Anzahl_Niederlassungen"] > 1),
+        "Segment",
+    ] = 2
+    return df
+
+
+def _rule_firmenname(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[
+        df["Firmenname"].str.contains(
+            "|".join(
+                [
+                    "Volksbank",
+                    "Raiffeisen",
+                    "Landkreis",
+                    "Landratsamt",
+                    "Bezirk",
+                    "Industrie- und Handelskammer",
+                    "VOLKSBANK",
+                    "Volksbanken",
+                    "Sparkasse",
+                    "Sparkassen",
+                    "sparkasse",
+                    "Ministerium",
+                    "ministerium",
+                ]
+            )
+        ),
+        "Segment",
+    ] = 1
+    return df
+
+
+def _rule_umsatz_code(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[df["Umsatz_Code"].astype(np.float32) >= 9, "Segment"] = 1
+    return df
+
+
+def _rule_umsatz_beschaeftigte_code(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[
+        (df["Umsatz_Code"].astype(np.float32) >= 3)
+        & (df["Beschaeftigte_Code"].astype(np.float32) >= 9),
+        "Segment",
+    ] = 1
+    return df
+
+
+def _rule_umsatz_branche(df: pd.DataFrame) -> pd.DataFrame:
+    # unklar, wie das umgesetzt werden kann
+    # da Umsatzstaffeln nicht 10 Mio als Grenze haben
+    # und es gibt nur folgende Branchen:
+    # 6209: Erbringung von sonstigen Dienstleistungen der Informationstechnologie
+    # 6203: Betrieb von Datenverarbeitungseinrichtungen für Dritte
+    df.loc[
+        (df["Umsatz_Code"].astype(np.float32) >= 6)
+        & ((df["Hauptbranche"] == 6209) | (df["Hauptbranche"] == 6203)),
+        "Segment",
+    ] = 1
+    return df
+
+
+def _rule_anzahl_niederlassungen(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[df["Anzahl_Niederlassungen"] > 50, "Segment"] = 1
+    return df
+
+
+def _rule_rechtsform(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[
+        (df["Rechtsform"] == "KGaA")
+        | (df["Rechtsform"] == "SE")
+        | (df["Rechtsform"] == "AG")
+        | (df["Rechtsform"] == "AG & Co. oHG")
+        | (df["Rechtsform"] == "AG & Co. KG"),
+        "Segment",
+    ] = 1
+    return df
+
+
+def _rule_anzahl_konzernmitglieder(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[df["Anzahl_Konzernmitglieder"] > 50, "Segment"] = 1
+    return df
+
+
+def _rule_konzernsegment(df: pd.DataFrame) -> pd.DataFrame:
+    # Konzernsegment:
+    # numerisch kleinstes Segment unter allen mit selber höchster Mutter
+    df["Konzernsegment"] = df.groupby(["HNR"])["Segment"].transform("min")
+    df["Konzernsegment"].fillna(df["Segment"], inplace=True)
+    # Beschaeftigte_Konzern:
+    # Summe der Mitarbeiter unter einer höchsten Nummer
+    df["Beschaeftigte_Konzern"] = df.groupby(["HNR"])["Beschaeftigte"].transform("sum")
+
+    df.loc[(df["Segment"] >= 2) & (df["Konzernsegment"] == 1), "Segment"] = 1
+
+    df.loc[
+        (df["Segment"] == 2)
+        & (df["Konzernsegment"] == 2)
+        & (df["Beschaeftigte_Konzern"] <= 50),
+        "Segment",
+    ] = 3
+
+    df.loc[
+        (df["Segment"] == 3)
+        & ((df["Konzernsegment"] == 2) | (df["Konzernsegment"] == 3))
+        & (df["Beschaeftigte_Konzern"] > 50),
+        "Segment",
+    ] = 2
+
+    df.loc[
+        (df["Segment"] == 2)
+        & (df["Konzernsegment"] == 3)
+        & (df["Beschaeftigte_Konzern"] <= 50),
+        "Segment",
+    ] = 3
+
+    return df
+
+
+def AAR059(df_bed: pd.DataFrame) -> pd.DataFrame:
+    """
+    Update segment based on miscellaneous rules.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        BeDirect data with segment information which needs to be updated.
+
+    Note : The function in pipeline is as per priority. The first function has lowest priority and
+
+    Returns
+    -------
+    Finalized segment data.
+
+    """
+    return (
+        df_bed.pipe(_add_segment_data)
+        .pipe(_rule_segment_anzahl_konzernmitglieder)
+        .pipe(_rule_segment_anzahl_niederlassungen)
+        .pipe(_rule_firmenname)
+        .pipe(_rule_umsatz_code)
+        .pipe(_rule_umsatz_beschaeftigte_code)
+        .pipe(_rule_umsatz_branche)
+        .pipe(_rule_anzahl_niederlassungen)
+        .pipe(_rule_rechtsform)
+        .pipe(_rule_anzahl_konzernmitglieder)
+        .pipe(_rule_konzernsegment)
+    )

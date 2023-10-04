@@ -36,4 +36,36 @@ def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
     _model_data = _model_data.set_index(_idx_name_copy, verify_integrity=True)
     
     return _model_data
-    
+
+
+def merge_data(df_left: pd.DataFrame, df_right: pd.DataFrame, merge_on: str = None) -> pd.DataFrame:
+    _index_name: str = df_left.index.name
+    _index_name_no_copy: str = _index_name
+    _result: pd.DataFrame = None
+
+    if _index_name is None:
+        _result = df_left.merge(df_right, on=merge_on, how="left") if merge_on is not None else df_left.merge(df_right, how="left")
+    else:
+        if _index_name_no_copy.endswith("_index"):
+            _index_name_no_copy = _index_name_no_copy.replace("_index", "")
+            
+        if _index_name_no_copy not in df_left.columns:
+            if _index_name != _index_name_no_copy:
+                # create / save copy of index  which ends with _index  suffix
+                df_left.reset_index(inplace=True)
+                df_left[_index_name_no_copy] = df_left[_index_name]
+                df_left.set_index(_index_name, inplace=True)
+            else:
+                # create / save copy of index  not ending with _index suffix
+                df_left.reset_index(inplace=True)
+                _index_name_copy = _index_name + "_index"
+                df_left[_index_name_copy] = df_left[_index_name]
+                df_left.set_index(_index_name_copy, inplace=True)
+                _index_name = _index_name_copy
+
+        _result = df_left.merge(df_right, on=merge_on, how="left") if merge_on is not None else df_left.merge(df_right, how="left")
+        _result[_index_name] = _result[_index_name_no_copy]
+        _result.set_index(_index_name, inplace=True)
+
+    return _result
+

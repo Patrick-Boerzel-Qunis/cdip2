@@ -1,121 +1,376 @@
 import numpy as np
-from pyspark.sql.types import IntegerType, FloatType
+from pyspark.sql.types import IntegerType, FloatType, StringType
 
-COLUMN_MAPPING = {
-    "DunBradstreet": {
-        "FIRMENNUMMER": "BisnodeID",
-        "STATUS": "Status",
-        "FIRMENNAME": "Firmenname",
-        "FIRMENTYP_LANGTEXT": "Firmentype",
-        "HANDELSNAME": "Handelsname",
-        "DNB_D_U_N_S_NUMMER": "DUNS_Nummer",
-        "PLZ_STRASSE": "PLZ",
-        "ORT_STRASSE": "Ort",
-        "STRASSE": "Strasse",
-        "HAUSNUMMER": "Hausnummer",
-        "BUNDESLAND": "Bundesland",
-        "GKZ": "GKZ",
-        "VORWAHL_TELEFON": "Vorwahl_Telefon",
-        "TELEFON": "Telefon",
-        "UMSATZ": "Umsatz",
-        "UMSATZ_JAHR": "Umsatz_Jahr",
-        "SEGMENT_DICC": "Segment",
-        "MARKETABLE": "Marketable",
-        "HAUPTBRANCHE_08": "Hauptbranche",
-        "HAUPTBRANCHENTEXT_08": "Hauptbranchentext",
-        "NEBENBRANCHE_08": "Nebenbranche",
-        "ANZAHL_NIEDERLASSUNGEN": "Anzahl_Niederlassungen",
-        "ANZAHL_KONZERNMITGLIEDER": "Anzahl_Konzernmitglieder",
-        "BESCHAEFTIGTE": "Beschaeftigte",
-        "DIREKTE_MUTTER_NUMMER": "Direkte_Mutter_Nummer",
-        "DIREKTE_MUTTER_LAND": "Direkte_Mutter_Land",
-        "HoechsteMutterNummer_0": "HNR",
-        "RECHTSFORM_TEXT": "Rechtsform",
-        "EHEMALIGER_FIRMENNAME": "Ehemaliger_Firmenname",
-        "HANDELSREGISTER": "Register",
+COLUMN_DEFINITIONS = {
+    "Bisnode": {
+        "FIRMENNUMMER": {
+            "name": "BisnodeID",
+            "type": IntegerType(),
+        },
+        "STATUS": {
+            "name": "Status",
+            "type": StringType(),
+        },
+        "FIRMENNAME": {
+            "name": "Firmenname",
+            "type": StringType(),
+        },
+        "FIRMENTYP_LANGTEXT": {
+            "name": "Firmentype",
+            "type": StringType(),
+        },
+        "HANDELSNAME": {
+            "name": "Handelsname",
+            "type": StringType(),
+        },
+        "DNB_D_U_N_S_NUMMER": {
+            "name": "DUNS_Nummer",
+            "type": IntegerType(),
+        },
+        "PLZ_STRASSE": {
+            "name": "PLZ",
+            "type": IntegerType(),
+        },
+        "ORT_STRASSE": {
+            "name": "Ort",
+            "type": StringType(),
+        },
+        "STRASSE": {
+            "name": "Strasse",
+            "type": StringType(),
+        },
+        "HAUSNUMMER": {
+            "name": "Hausnummer",
+            "type": StringType(),
+        },
+        "BUNDESLAND": {
+            "name": "Bundesland",
+            "type": StringType(),
+        },
+        "GKZ": {
+            "name": "GKZ",
+            "type": IntegerType(),
+        },
+        "VORWAHL_TELEFON": {
+            "name": "Vorwahl_Telefon",
+            "type": IntegerType(),
+        },
+        "TELEFON": {
+            "name": "Telefon",
+            "type": IntegerType(),
+        },
+        "UMSATZ": {
+            "name": "Umsatz",
+            "type": FloatType(),
+        },
+        "UMSATZ_JAHR": {
+            "name": "Umsatz_Jahr",
+            "type": IntegerType(),
+        },
+        "SEGMENT_DICC": {
+            "name": "Segment",
+            "type": IntegerType(),
+        },
+        "MARKETABLE": {
+            "name": "Marketable",
+            "type": StringType(),
+        },
+        "HAUPTBRANCHE_08": {
+            "name": "Hauptbranche",
+            "type": IntegerType(),
+        },
+        "HAUPTBRANCHENTEXT_08": {
+            "name": "Hauptbranchentext",
+            "type": StringType(),
+        },
+        "NEBENBRANCHE_08": {
+            "name": "Nebenbranche",
+            "type": StringType(),
+        },
+        "ANZAHL_NIEDERLASSUNGEN": {
+            "name": "Anzahl_Niederlassungen",
+            "type": IntegerType(),
+        },
+        "ANZAHL_KONZERNMITGLIEDER": {
+            "name": "Anzahl_Konzernmitglieder",
+            "type": IntegerType(),
+        },
+        "BESCHAEFTIGTE": {
+            "name": "Beschaeftigte",
+            "type": IntegerType(),
+        },
+        "DIREKTE_MUTTER_NUMMER": {
+            "name": "Direkte_Mutter_Nummer",
+            "type": IntegerType(),
+        },
+        "DIREKTE_MUTTER_LAND": {
+            "name": "Direkte_Mutter_Land",
+            "type": StringType(),
+        },
+        "HoechsteMutterNummer_0": {
+            "name": "HNR",
+            "type": IntegerType(),
+        },
+        "RECHTSFORM_TEXT": {
+            "name": "Rechtsform",
+            "type": StringType(),
+        },
+        "EHEMALIGER_FIRMENNAME": {
+            "name": "Ehemaliger_Firmenname",
+            "type": StringType(),
+        },
+        "HANDELSREGISTER": {
+            "name": "Register",
+            "type": StringType(),
+        },
+    },
+    "BisnodePrimus": {
+        "DNB_D_U_N_S_NUMMER": {
+            "name": "DUNS_Nummer",
+            "type": IntegerType(),
+        },
+        "GESCHLECHT_TEXT_1": {
+            "name": "Geschlecht_Text_1",
+            "type": StringType(),
+        },
+        "GESCHLECHT_TEXT_2": {
+            "name": "Geschlecht_Text_2",
+            "type": StringType(),
+        },
+        "GESCHLECHT_TEXT_3": {
+            "name": "Geschlecht_Text_3",
+            "type": StringType(),
+        },
+        "TITEL_1": {
+            "name": "Titel_1",
+            "type": StringType(),
+        },
+        "TITEL_2": {
+            "name": "Titel_2",
+            "type": StringType(),
+        },
+        "TITEL_3": {
+            "name": "Titel_3",
+            "type": StringType(),
+        },
+        "NAME_1": {
+            "name": "Name_1",
+            "type": StringType(),
+        },
+        "NAME_2": {
+            "name": "Name_2",
+            "type": StringType(),
+        },
+        "NAME_3": {
+            "name": "Name_3",
+            "type": StringType(),
+        },
+        "VORNAME_1": {
+            "name": "Vorname_1",
+            "type": StringType(),
+        },
+        "VORNAME_2": {
+            "name": "Vorname_2",
+            "type": StringType(),
+        },
+        "VORNAME_3": {
+            "name": "Vorname_3",
+            "type": StringType(),
+        },
+        "POSITION_TEXT_1": {
+            "name": "Position_Text_1",
+            "type": StringType(),
+        },
+        "POSITION_TEXT_2": {
+            "name": "Position_Text_2",
+            "type": StringType(),
+        },
+        "POSITION_TEXT_3": {
+            "name": "Position_Text_3",
+            "type": StringType(),
+        },
+        "INTERNET_ADRESSE": {
+            "name": "Website",
+            "type": StringType(),
+        },
+        "EMAIL": {
+            "name": "Email",
+            "type": StringType(),
+        },
+        "FIRMENZENTRALE_AUSLAND": {
+            "name": "Firmenzentrale_Ausland",
+            "type": StringType(),
+        },
     },
     "BeDirect": {
-        "BE_ID": "BED_ID",
-        "BE_FIRMENNAME_GESAMT": "Firmenname",
-        "BE_PLZ": "PLZ",
-        "BE_ORT": "Ort",
-        "BE_STRASSE": "Strasse",
-        "BE_HAUSNUMMER": "Hausnummer",
-        "BE_VORWAHL": "Vorwahl_Telefon",
-        "BE_RUFNUMMER": "Telefon",
-        "BE_E_MAIL": "Email",
-        "BE_HOMEPAGE": "Website",
-        "BE_PRIMAERBRANCHE": "Hauptbranche",
-        "BE_BRANCHE2": "Nebenbranche_1",
-        "BE_BRANCHE3": "Nebenbranche_2",
-        "BE_BRANCHE4": "Nebenbranche_3",
-        "BE_BRANCHE5": "Nebenbranche_4",
-        "BE_MITARBEITERSTAFFEL": "Beschaeftigte_Code",
-        "BE_ANZAHL_NL_FILIALEN": "Anzahl_Niederlassungen",
-        "HR_TYP": "Register_Type",
-        "HR_NUMMER": "Register_Nummer",
-        "BE_UMSATZSTAFFEL": "Umsatz_Code",
-        "TELEFON_SELECT": "Tel_Select",
-        "FLAG_QUALITAET_ORG": "Flag_Quality",
-        "BE_ANREDE": "Geschlecht_Text",
-        "BE_TITEL": "Titel",
-        "BE_VORNAME": "Vorname",
-        "BE_NACHNAME": "Name",
-        "BE_PREFIX": "Prefix_Name",
-        "BIPID_DIREKTE_MUTTER": "Direkte_Mutter_Nummer",
-        "BIPID_HOECHSTE_MUTTER": "HNR",
-        "BE_RECHTSFORM_ID": "Rechtsform",
+        "BE_ID": {
+            "name": "BED_ID",
+            "type": IntegerType(),
+        },
+        "BE_FIRMENNAME_GESAMT": {
+            "name": "Firmenname",
+            "type": StringType(),
+        },
+        "BE_PLZ": {
+            "name": "PLZ",
+            "type": StringType(),
+        },
+        "BE_ORT": {
+            "name": "Ort",
+            "type": StringType(),
+        },
+        "BE_STRASSE": {
+            "name": "Strasse",
+            "type": StringType(),
+        },
+        "BE_HAUSNUMMER": {
+            "name": "Hausnummer",
+            "type": StringType(),
+        },
+        "BE_VORWAHL": {
+            "name": "Vorwahl_Telefon",
+            "type": StringType(),
+        },
+        "BE_RUFNUMMER": {
+            "name": "Telefon",
+            "type": StringType(),
+        },
+        "BE_E_MAIL": {
+            "name": "Email",
+            "type": StringType(),
+        },
+        "BE_HOMEPAGE": {
+            "name": "Website",
+            "type": StringType(),
+        },
+        "BE_PRIMAERBRANCHE": {
+            "name": "Hauptbranche",
+            "type": StringType(),
+        },
+        "BE_BRANCHE2": {
+            "name": "Nebenbranche_1",
+            "type": StringType(),
+        },
+        "BE_BRANCHE3": {
+            "name": "Nebenbranche_2",
+            "type": StringType(),
+        },
+        "BE_BRANCHE4": {
+            "name": "Nebenbranche_3",
+            "type": StringType(),
+        },
+        "BE_BRANCHE5": {
+            "name": "Nebenbranche_4",
+            "type": StringType(),
+        },
+        "BE_MITARBEITERSTAFFEL": {
+            "name": "Beschaeftigte_Code",
+            "type": StringType(),
+        },
+        "BE_ANZAHL_NL_FILIALEN": {
+            "name": "Anzahl_Niederlassungen",
+            "type": StringType(),
+        },
+        "HR_TYP": {
+            "name": "Register_Type",
+            "type": StringType(),
+        },
+        "HR_NUMMER": {
+            "name": "Register_Nummer",
+            "type": StringType(),
+        },
+        "BE_UMSATZSTAFFEL": {
+            "name": "Umsatz_Code",
+            "type": StringType(),
+        },
+        "TELEFON_SELECT": {
+            "name": "Tel_Select",
+            "type": StringType(),
+        },
+        "FLAG_QUALITAET_ORG": {
+            "name": "Flag_Quality",
+            "type": StringType(),
+        },
+        "BE_ANREDE": {
+            "name": "Geschlecht_Text",
+            "type": StringType(),
+        },
+        "BE_TITEL": {
+            "name": "Titel",
+            "type": StringType(),
+        },
+        "BE_VORNAME": {
+            "name": "Vorname",
+            "type": StringType(),
+        },
+        "BE_NACHNAME": {
+            "name": "Name",
+            "type": StringType(),
+        },
+        "BE_PREFIX": {
+            "name": "Prefix_Name",
+            "type": StringType(),
+        },
+        "BIPID_DIREKTE_MUTTER": {
+            "name": "Direkte_Mutter_Nummer",
+            "type": IntegerType(),
+        },
+        "BIPID_HOECHSTE_MUTTER": {
+            "name": "HNR",
+            "type": IntegerType(),
+        },
+        "BE_RECHTSFORM_ID": {
+            "name": "Rechtsform",
+            "type": StringType(),
+        },
     },
     "MapPlzBundesland": {
-        "PLZ": "PLZ",
-        "BUNDESLAND":"Bundesland",
+        "PLZ": {
+            "name": "PLZ",
+            "type": StringType(),
+        },
+        "BUNDESLAND": {
+            "name": "Bundesland",
+            "type": StringType(),
+        },
     },
     "MapBedBranche": {
-    "BRANCHE": "Hauptbranche",
-    "BRANCHENTEXT": "Hauptbranchentext",
+        "BRANCHE": {
+            "name": "Hauptbranche",
+            "type": StringType(),
+        },
+        "BRANCHENTEXT": {
+            "name": "Hauptbranchentext",
+            "type": StringType(),
+        },
     },
     "BisnodeForBeD": {
-        "FIRMENNUMMER": "BisnodeID",
-        "DNB_D_U_N_S_NUMMER": "DUNS_Nummer",
-        "BESCHAEFTIGTE": "Beschaeftigte",
-        "UMSATZ": "Umsatz",
+        "FIRMENNUMMER": {
+            "name": "BisnodeID",
+            "type": StringType(),
+        },
+        "DNB_D_U_N_S_NUMMER": {
+            "name": "DUNS_Nummer",
+            "type": StringType(),
+        },
+        "BESCHAEFTIGTE": {
+            "name": "Beschaeftigte",
+            "type": StringType(),
+        },
+        "UMSATZ": {
+            "name": "Umsatz",
+            "type": StringType(),
+        },
     },
     "Industriescore": {
-    "WZ8_H5_CODE": "Hauptbranche",
-    "INDUSTRY_SCORE": "Industry_Score",
-    },
-}
-
-COLUMN_TYPE_MAPPING = {
-    "DunBradstreet": {
-        "FIRMENNUMMER": IntegerType(),
-        "FIRMENZENTRALE_NUMMER": IntegerType(),
-        "DNB_D_U_N_S_NUMMER": IntegerType(),
-        "PLZ_STRASSE": IntegerType(),
-        "POSTFACH": IntegerType(),
-        "PLZ_POSTFACH": IntegerType(),
-        "GKZ": IntegerType(),
-        "VORWAHL_TELEFON": IntegerType(),
-        "TELEFON": IntegerType(),
-        "UMSATZ": FloatType(),
-        "UMSATZ_JAHR": IntegerType(),
-        "SEGMENT_DICC": IntegerType(),
-        "HAUPTBRANCHE_08": IntegerType(),
-        "ANZAHL_NIEDERLASSUNGEN": IntegerType(),
-        "ANZAHL_KONZERNMITGLIEDER": IntegerType(),
-        "BESCHAEFTIGTE": IntegerType(),
-        "DIREKTE_MUTTER_NUMMER": IntegerType(),
-        "HoechsteMutterNummer_0": IntegerType(),
-        "AZ_LAENGENGRAD": FloatType(),
-        "AZ_BREITENGRAD": FloatType()
-    },
-    "BeDirect": {
-        "BE_ID": IntegerType(),
-        "BIPID_HOECHSTE_MUTTER": IntegerType(),
-        "BIPID_DIREKTE_MUTTER": IntegerType(),
-    },
-    "Industriescore": {
-        "INDUSTRY_SCORE": IntegerType(),
+        "WZ8_H5_CODE": {
+            "name": "Hauptbranche",
+            "type": StringType(),
+        },
+        "INDUSTRY_SCORE": {
+            "name": "Industry_Score",
+            "type": IntegerType(),
+        },
     },
 }
 

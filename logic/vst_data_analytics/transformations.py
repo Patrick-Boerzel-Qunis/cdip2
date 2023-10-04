@@ -15,9 +15,9 @@ def replace_nan(df: pd.DataFrame) -> pd.DataFrame:
 def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
     if df is None or name is None:
         return df
-    
+
     _idx_name: str = df.index.name
-   
+
     if not name in df.columns and name != _idx_name:
         return df
 
@@ -34,8 +34,13 @@ def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
     if not _idx_name_copy in _model_data.columns:
         _model_data[_idx_name_copy] = _model_data[name]
     _model_data = _model_data.set_index(_idx_name_copy, verify_integrity=True)
-    
+
     return _model_data
+
+
+def join_data(df: pd.DataFrame, df_other: pd.DataFrame, join_on: str = None) -> pd.DataFrame:
+    columns = df_other.columns.difference(df.columns)
+    return df.join(df_other[columns], on=join_on, lsuffix="", rsuffix="_right")
 
 
 def merge_data(df_left: pd.DataFrame, df_right: pd.DataFrame, merge_on: str = None) -> pd.DataFrame:

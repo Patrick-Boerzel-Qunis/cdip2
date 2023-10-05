@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 def AUR02_BeD(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
     return df.assign(Titel=lambda x: x.Titel.map(mapping))
 
@@ -14,7 +15,10 @@ def AUR08(df: pd.DataFrame, mapping: dict[str, float]) -> pd.DataFrame:
 
 
 def AUR09(df: pd.DataFrame, mapping: dict[str, int]) -> pd.DataFrame:
-   return df.assign(Beschaeftigte=lambda x: x.Beschaeftigte_Code.replace(mapping).astype(np.float32))
+    return df.assign(
+        Beschaeftigte=lambda x: x.Beschaeftigte_Code.replace(
+            mapping).astype(np.float32)
+    )
 
 
 def AUR11(df: pd.DataFrame) -> pd.DataFrame:
@@ -22,21 +26,27 @@ def AUR11(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def AUR12(df: pd.DataFrame) -> pd.DataFrame:
-    return df.assign(Name=lambda x: np.where(
-            x["Prefix_Name"].isna(),
-            x["Name"],
-            x["Prefix_Name"] + " " + x["Name"]
+    return df.assign(
+        Name=lambda x: np.where(
+            x["Prefix_Name"].isna(), x["Name"], x["Prefix_Name"] + " " + x["Name"]
         )
     )
 
 
 def AUR16(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(
-        Nebenbranche=lambda y:
-        (y["Nebenbranche_1"].fillna("_____").str.rjust(5, "0") + ";" +
-            y["Nebenbranche_2"].fillna("_____").str.rjust(5, "0") + ";" +
-            y["Nebenbranche_3"].fillna("_____").str.rjust(5, "0") + ";" +
-            y["Nebenbranche_4"].fillna("_____").str.rjust(5, "0")).str.replace(";_____", "").replace("_____","").replace("", np.NaN)
+        Nebenbranche=lambda y: (
+            y["Nebenbranche_1"].fillna("_____").str.rjust(5, "0")
+            + ";"
+            + y["Nebenbranche_2"].fillna("_____").str.rjust(5, "0")
+            + ";"
+            + y["Nebenbranche_3"].fillna("_____").str.rjust(5, "0")
+            + ";"
+            + y["Nebenbranche_4"].fillna("_____").str.rjust(5, "0")
+        )
+        .str.replace(";_____", "")
+        .replace("_____", "")
+        .replace("", np.NaN)
     )
 
 
@@ -59,13 +69,151 @@ def AUR110(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def AUR04(df: pd.DataFrame) -> pd.DataFrame:
+    df["Telefon_complete"] = (
+        "+49 " + df["Vorwahl_Telefon"].str[1:] + " " + df["Telefon"]
+    )
+    return df
+
+
+def AUR06(df: pd.DataFrame) -> pd.DataFrame:
+    re_tele = "((0{1})([1]{1})([3567]{1})([0-9]{1,2}))|(0700)|(0800)|(0900)"
+    df["Telefon_Type"] = np.where(
+        (~df["Vorwahl_Telefon"].str.match(re_tele, na=True))
+        & (df["Vorwahl_Telefon"].notna()),
+        "Fixed network",
+        np.where(
+            (df["Vorwahl_Telefon"].notna()),
+            "Mobile / Premium",
+            df["Vorwahl_Telefon"],
+        ),
+    )
+    return df
+
+
+def AUR07(df: pd.DataFrame) -> pd.DataFrame:
+    return df.assign(Bundesland=lambda x: x.Bundesland.str.title())
+
+
+def AUR10(df: pd.DataFrame) -> pd.DataFrame:
+    return df.assign(Umsatz=lambda x: x.Umsatz.astype(np.float32))
+
+
+def AUR13(df: pd.DataFrame) -> pd.DataFrame:
+    if "Marketable" in df.columns:
+        df = df.assign(Marketable=lambda x: x.Marketable.fillna("N"))
+    if "Firmenzentrale_Ausland" in df.columns:
+        df = df.assign(
+            Firmenzentrale_Ausland=lambda x: x.Firmenzentrale_Ausland.fillna(
+                "N")
+        )
+    if "Tel_Select" in df.columns:
+        df.assign(Tel_Select=lambda x: x.Tel_Select.replace("J", "Y"))
+    return df
+
+
+def AUR14(df: pd.DataFrame) -> pd.DataFrame:
+    return df.assign(Hauptbranche=lambda x: x.Hauptbranche.str.ljust(5, "0"))
+
+
+#   - AUR17: #Core
+#       source_name: "datenschutz"
+#       data_path: "anreicherung_tables"
+#       file_name: "datenschutz.csv"
+#       description: "Remove wrong phone/email entries"
+
+
+def AUR18(df: pd.DataFrame) -> pd.DataFrame:
+    _before: pd.Series = df["Strasse"].copy()
+    df["Strasse"].replace(
+        ["o.A", "o. A", "o.A.", "o. A."], np.NaN, inplace=True)
+    diff = _before.compare(df["Strasse"])
+    df._stats(len(diff))
+    return df
+
+
+def AUR19(df: pd.DataFrame) -> pd.DataFrame:
+    _before: pd.Series = df["Telefon_complete"].copy()
+    df["Telefon_complete"].replace(
+        to_replace=r"^[0\+]{1,2}49[0 ]*$", value=np.NaN, regex=True, inplace=True
+    )
+    diff = _before.compare(df["Telefon_complete"])
+    df._stats(len(diff))
+    return df
+
+
+def AUR20(df: pd.DataFrame) -> pd.DataFrame:
+    _before: pd.Series = df["Telefon_complete"].copy()
+    df["Telefon_complete"].replace(
+        to_replace=r"^([0\+]{1,2}49)[0 ]*([1-9][ 0-9]*)$",
+        value=r"\1 \2",
+        regex=True,
+        inplace=True,
+    )
+    diff = _before.compare(df["Telefon_complete"])
+    df._stats(len(diff))
+    return df
+
+
+def AUR21(df: pd.DataFrame) -> pd.DataFrame:
+    _before: pd.Series = df["Hausnummer"].copy()
+    df["Hausnummer"] = df["Hausnummer"].str.replace(" ", "").str.casefold()
+    diff = _before.compare(df["Hausnummer"])
+    df._stats(len(diff))
+    return df
+
+
+def AUR108(df: pd.DataFrame) -> pd.DataFrame:
+    return df.assign(
+        Name=lambda x: np.where(
+            pd.isna(x.Name_3), np.where(
+                pd.isna(x.Name_1), x.Name_2, x.Name_1), x.Name_3
+        ),
+        Vorname=lambda x: np.where(
+            pd.isna(x.Vorname_3),
+            np.where(pd.isna(x.Vorname_1), x.Vorname_2, x.Vorname_1),
+            x.Vorname_3,
+        ),
+        Geschlecht_Text=lambda x: np.where(
+            pd.isna(x.Geschlecht_Text_3),
+            np.where(
+                pd.isna(
+                    x.Geschlecht_Text_1), x.Geschlecht_Text_2, x.Geschlecht_Text_1
+            ),
+            x.Geschlecht_Text_3,
+        ),
+        Position_Text=lambda x: np.where(
+            pd.isna(x.DNB_Position_Text_3),
+            np.where(
+                pd.isna(x.DNB_Position_Text_1),
+                x.DNB_Position_Text_2,
+                x.DNB_Position_Text_1,
+            ),
+            x.DNB_Position_Text_3,
+        ),
+        Titel=lambda x: np.where(
+            pd.isna(x.Titel_3),
+            np.where(pd.isna(x.Titel_1), x.Titel_2, x.Titel_1),
+            x.Titel_3,
+        ),
+    )
+
+
+def AUR109(df: pd.DataFrame) -> pd.DataFrame:
+    return df.assign(
+        Status=lambda x: np.where(x.Status == "inaktiv", False, True),
+    )
+#   - AUR111: "Remove Handelsname where Handelsname equals to Ort" #Cleanse
+
+
 def AAR10(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
     return df.assign(Rechtsform=lambda x: x.Rechtsform.replace(mapping))
 
 
 def AAR050(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(
-        Anzahl_Niederlassungen=lambda x: x.Anzahl_Niederlassungen.replace({"None": np.nan}).astype(np.float32),
+        Anzahl_Niederlassungen=lambda x: x.Anzahl_Niederlassungen.replace(
+            {"None": np.nan}).astype(np.float32),
     )
 
 
@@ -97,7 +245,8 @@ def get_beschaeftigte_score(df_bisnode: pd.DataFrame) -> pd.DataFrame:
         Beschaeftigte_Code=lambda x: pd.cut(
             x.Beschaeftigte,
             bins=[0, 4, 9, 19, 49, 99, 199, 499, 999, 1999, np.inf],
-            labels=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
+            labels=["01", "02", "03", "04", "05",
+                    "06", "07", "08", "09", "10"],
         ),
     )
     g = df.groupby(["Beschaeftigte_Code"])
@@ -116,14 +265,14 @@ def AAR051(df_left: pd.DataFrame, df_right: pd.DataFrame) -> pd.DataFrame:
             get_umsatz_score(df_right), how="left", on="Umsatz_Code"
         ).merge(
             get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code"
-        ) 
+        )
     else:
         _result = df_left.reset_index().merge(
             get_umsatz_score(df_right), how="left", on="Umsatz_Code"
         ).merge(
             get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code"
         ).set_index(_index_name)
-    
+
     return _result
 
 
@@ -181,12 +330,12 @@ def AAR058(df: pd.DataFrame) -> pd.DataFrame:
         df[col].fillna(1, inplace=True)
 
     df["Gesamt_Score"] = (
-            df["Umsatz_Score"] * 0.2
-            + df["Beschaeftigte_Score"] * 0.2
-            + df["Umsatz_pro_Mitarbeiter_Score"] * 0.1
-            + df["Niederlassungs_Score"] * 0.1
-            + df["Konzernmitglieder_Score"] * 0.2
-            + df["Industry_Score"] * 0.2
+        df["Umsatz_Score"] * 0.2
+        + df["Beschaeftigte_Score"] * 0.2
+        + df["Umsatz_pro_Mitarbeiter_Score"] * 0.1
+        + df["Niederlassungs_Score"] * 0.1
+        + df["Konzernmitglieder_Score"] * 0.2
+        + df["Industry_Score"] * 0.2
     ).astype(np.float32)
 
     return df
@@ -301,7 +450,8 @@ def _rule_konzernsegment(df: pd.DataFrame) -> pd.DataFrame:
     df["Konzernsegment"].fillna(df["Segment"], inplace=True)
     # Beschaeftigte_Konzern:
     # Summe der Mitarbeiter unter einer höchsten Nummer
-    df["Beschaeftigte_Konzern"] = df.groupby(["HNR"])["Beschaeftigte"].transform("sum")
+    df["Beschaeftigte_Konzern"] = df.groupby(
+        ["HNR"])["Beschaeftigte"].transform("sum")
 
     df.loc[(df["Segment"] >= 2) & (df["Konzernsegment"] == 1), "Segment"] = 1
 

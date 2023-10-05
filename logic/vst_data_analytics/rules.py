@@ -16,8 +16,7 @@ def AUR08(df: pd.DataFrame, mapping: dict[str, float]) -> pd.DataFrame:
 
 def AUR09(df: pd.DataFrame, mapping: dict[str, int]) -> pd.DataFrame:
     return df.assign(
-        Beschaeftigte=lambda x: x.Beschaeftigte_Code.replace(
-            mapping).astype(np.float32)
+        Beschaeftigte=lambda x: x.Beschaeftigte_Code.replace(mapping).astype(np.float32)
     )
 
 
@@ -104,8 +103,7 @@ def AUR13(df: pd.DataFrame) -> pd.DataFrame:
         df = df.assign(Marketable=lambda x: x.Marketable.fillna("N"))
     if "Firmenzentrale_Ausland" in df.columns:
         df = df.assign(
-            Firmenzentrale_Ausland=lambda x: x.Firmenzentrale_Ausland.fillna(
-                "N")
+            Firmenzentrale_Ausland=lambda x: x.Firmenzentrale_Ausland.fillna("N")
         )
     if "Tel_Select" in df.columns:
         df.assign(Tel_Select=lambda x: x.Tel_Select.replace("J", "Y"))
@@ -125,8 +123,7 @@ def AUR14(df: pd.DataFrame) -> pd.DataFrame:
 
 def AUR18(df: pd.DataFrame) -> pd.DataFrame:
     _before: pd.Series = df["Strasse"].copy()
-    df["Strasse"].replace(
-        ["o.A", "o. A", "o.A.", "o. A."], np.NaN, inplace=True)
+    df["Strasse"].replace(["o.A", "o. A", "o.A.", "o. A."], np.NaN, inplace=True)
     diff = _before.compare(df["Strasse"])
     df._stats(len(diff))
     return df
@@ -166,8 +163,7 @@ def AUR21(df: pd.DataFrame) -> pd.DataFrame:
 def AUR108(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(
         Name=lambda x: np.where(
-            pd.isna(x.Name_3), np.where(
-                pd.isna(x.Name_1), x.Name_2, x.Name_1), x.Name_3
+            pd.isna(x.Name_3), np.where(pd.isna(x.Name_1), x.Name_2, x.Name_1), x.Name_3
         ),
         Vorname=lambda x: np.where(
             pd.isna(x.Vorname_3),
@@ -177,8 +173,7 @@ def AUR108(df: pd.DataFrame) -> pd.DataFrame:
         Geschlecht_Text=lambda x: np.where(
             pd.isna(x.Geschlecht_Text_3),
             np.where(
-                pd.isna(
-                    x.Geschlecht_Text_1), x.Geschlecht_Text_2, x.Geschlecht_Text_1
+                pd.isna(x.Geschlecht_Text_1), x.Geschlecht_Text_2, x.Geschlecht_Text_1
             ),
             x.Geschlecht_Text_3,
         ),
@@ -203,6 +198,8 @@ def AUR109(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(
         Status=lambda x: np.where(x.Status == "inaktiv", False, True),
     )
+
+
 #   - AUR111: "Remove Handelsname where Handelsname equals to Ort" #Cleanse
 
 
@@ -213,20 +210,27 @@ def AAR10(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
 def AAR050(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(
         Anzahl_Niederlassungen=lambda x: x.Anzahl_Niederlassungen.replace(
-            {"None": np.nan}).astype(np.float32),
+            {"None": np.nan}
+        ).astype(np.float32),
     )
 
 
 def get_umsatz_score(df_bisnode: pd.DataFrame) -> pd.DataFrame:
-    df = df_bisnode.replace("None", np.NaN).assign(Umsatz=lambda x: x.Umsatz.astype(np.float32)).assign(
-        Umsatz_Score=lambda x: pd.cut(
-            x.Umsatz, bins=[-np.inf, 10, 50, 250, 500, np.inf], labels=[1, 2, 3, 4, 5]
-        ).astype(np.float32),
-        Umsatz_Code=lambda x: pd.cut(
-            x.Umsatz,
-            bins=[-np.inf, 0.1, 0.25, 0.5, 2.5, 5, 25, 50, 500, np.inf],
-            labels=["01", "02", "03", "04", "05", "06", "07", "08", "09"],
-        ),
+    df = (
+        df_bisnode.replace("None", np.NaN)
+        .assign(Umsatz=lambda x: x.Umsatz.astype(np.float32))
+        .assign(
+            Umsatz_Score=lambda x: pd.cut(
+                x.Umsatz,
+                bins=[-np.inf, 10, 50, 250, 500, np.inf],
+                labels=[1, 2, 3, 4, 5],
+            ).astype(np.float32),
+            Umsatz_Code=lambda x: pd.cut(
+                x.Umsatz,
+                bins=[-np.inf, 0.1, 0.25, 0.5, 2.5, 5, 25, 50, 500, np.inf],
+                labels=["01", "02", "03", "04", "05", "06", "07", "08", "09"],
+            ),
+        )
     )
     g = df.groupby(["Umsatz_Code"])
     # Ziel: In jeder Staffel den gemittelten Durchschnitt von den entsprechenden Bisnode-Werten berechnen
@@ -236,25 +240,30 @@ def get_umsatz_score(df_bisnode: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_beschaeftigte_score(df_bisnode: pd.DataFrame) -> pd.DataFrame:
-    df = df_bisnode.replace("None", np.NaN).assign(Beschaeftigte=lambda x: x.Beschaeftigte.astype(np.float32)).assign(
-        Beschaeftigte_Score=lambda x: pd.cut(
-            x.Beschaeftigte,
-            bins=[-np.inf, 10, 50, 250, 999, np.inf],
-            labels=[1, 2, 3, 4, 5],
-        ).astype(np.float32),
-        Beschaeftigte_Code=lambda x: pd.cut(
-            x.Beschaeftigte,
-            bins=[0, 4, 9, 19, 49, 99, 199, 499, 999, 1999, np.inf],
-            labels=["01", "02", "03", "04", "05",
-                    "06", "07", "08", "09", "10"],
-        ),
+    df = (
+        df_bisnode.replace("None", np.NaN)
+        .assign(Beschaeftigte=lambda x: x.Beschaeftigte.astype(np.float32))
+        .assign(
+            Beschaeftigte_Score=lambda x: pd.cut(
+                x.Beschaeftigte,
+                bins=[-np.inf, 10, 50, 250, 999, np.inf],
+                labels=[1, 2, 3, 4, 5],
+            ).astype(np.float32),
+            Beschaeftigte_Code=lambda x: pd.cut(
+                x.Beschaeftigte,
+                bins=[0, 4, 9, 19, 49, 99, 199, 499, 999, 1999, np.inf],
+                labels=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
+            ),
+        )
     )
     g = df.groupby(["Beschaeftigte_Code"])
     # Ziel: In jeder Staffel den gemittelten Durchschnitt von den entsprechenden Bisnode-Werten berechnen
-    return pd.DataFrame({
-        "Beschaeftigte": g.Beschaeftigte.mean(),
-        "Beschaeftigte_Score": g.Beschaeftigte_Score.mean(),
-    })
+    return pd.DataFrame(
+        {
+            "Beschaeftigte": g.Beschaeftigte.mean(),
+            "Beschaeftigte_Score": g.Beschaeftigte_Score.mean(),
+        }
+    )
 
 
 def AAR051(df_left: pd.DataFrame, df_right: pd.DataFrame) -> pd.DataFrame:
@@ -263,15 +272,16 @@ def AAR051(df_left: pd.DataFrame, df_right: pd.DataFrame) -> pd.DataFrame:
     if _index_name is None:
         _result = df_left.merge(
             get_umsatz_score(df_right), how="left", on="Umsatz_Code"
-        ).merge(
-            get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code"
-        )
+        ).merge(get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code")
     else:
-        _result = df_left.reset_index().merge(
-            get_umsatz_score(df_right), how="left", on="Umsatz_Code"
-        ).merge(
-            get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code"
-        ).set_index(_index_name)
+        _result = (
+            df_left.reset_index()
+            .merge(get_umsatz_score(df_right), how="left", on="Umsatz_Code")
+            .merge(
+                get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code"
+            )
+            .set_index(_index_name)
+        )
 
     return _result
 
@@ -302,9 +312,9 @@ def AAR055(df: pd.DataFrame) -> pd.DataFrame:
 
 def AAR056(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(
-        Anzahl_Konzernmitglieder=lambda x: x.groupby(["HNR"])["HNR"].transform(
-            "count"
-        ).astype(np.float32)
+        Anzahl_Konzernmitglieder=lambda x: x.groupby(["HNR"])["HNR"]
+        .transform("count")
+        .astype(np.float32)
     )
 
 
@@ -450,8 +460,7 @@ def _rule_konzernsegment(df: pd.DataFrame) -> pd.DataFrame:
     df["Konzernsegment"].fillna(df["Segment"], inplace=True)
     # Beschaeftigte_Konzern:
     # Summe der Mitarbeiter unter einer höchsten Nummer
-    df["Beschaeftigte_Konzern"] = df.groupby(
-        ["HNR"])["Beschaeftigte"].transform("sum")
+    df["Beschaeftigte_Konzern"] = df.groupby(["HNR"])["Beschaeftigte"].transform("sum")
 
     df.loc[(df["Segment"] >= 2) & (df["Konzernsegment"] == 1), "Segment"] = 1
 

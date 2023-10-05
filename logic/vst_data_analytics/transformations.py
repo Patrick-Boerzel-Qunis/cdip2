@@ -38,22 +38,30 @@ def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
     return _model_data
 
 
-def join_data(df: pd.DataFrame, df_other: pd.DataFrame, join_on: str = None) -> pd.DataFrame:
+def join_data(
+    df: pd.DataFrame, df_other: pd.DataFrame, join_on: str = None
+) -> pd.DataFrame:
     columns = df_other.columns.difference(df.columns)
     return df.join(df_other[columns], on=join_on, lsuffix="", rsuffix="_right")
 
 
-def merge_data(df_left: pd.DataFrame, df_right: pd.DataFrame, merge_on: str = None) -> pd.DataFrame:
+def merge_data(
+    df_left: pd.DataFrame, df_right: pd.DataFrame, merge_on: str = None
+) -> pd.DataFrame:
     _index_name: str = df_left.index.name
     _index_name_no_copy: str = _index_name
     _result: pd.DataFrame = None
 
     if _index_name is None:
-        _result = df_left.merge(df_right, on=merge_on, how="left") if merge_on is not None else df_left.merge(df_right, how="left")
+        _result = (
+            df_left.merge(df_right, on=merge_on, how="left")
+            if merge_on is not None
+            else df_left.merge(df_right, how="left")
+        )
     else:
         if _index_name_no_copy.endswith("_index"):
             _index_name_no_copy = _index_name_no_copy.replace("_index", "")
-            
+
         if _index_name_no_copy not in df_left.columns:
             if _index_name != _index_name_no_copy:
                 # create / save copy of index  which ends with _index  suffix
@@ -68,9 +76,12 @@ def merge_data(df_left: pd.DataFrame, df_right: pd.DataFrame, merge_on: str = No
                 df_left.set_index(_index_name_copy, inplace=True)
                 _index_name = _index_name_copy
 
-        _result = df_left.merge(df_right, on=merge_on, how="left") if merge_on is not None else df_left.merge(df_right, how="left")
+        _result = (
+            df_left.merge(df_right, on=merge_on, how="left")
+            if merge_on is not None
+            else df_left.merge(df_right, how="left")
+        )
         _result[_index_name] = _result[_index_name_no_copy]
         _result.set_index(_index_name, inplace=True)
 
     return _result
-

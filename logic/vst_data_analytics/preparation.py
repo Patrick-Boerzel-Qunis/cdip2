@@ -22,7 +22,11 @@ def cast_types(df: DataFrame, type_mappings: dict[str, DataType]):
     return reduce(cast_single, type_mappings.items(), df)
 
 
-def read_data(spark: SparkSession, path: str, column_definitions: dict[str, dict[str, str | DataType]]) -> DataFrame:
+def read_data(
+    spark: SparkSession,
+    path: str,
+    column_definitions: dict[str, dict[str, str | DataType]],
+) -> DataFrame:
     df = spark.read.format("parquet").load(path)
     columns = _get_old_columns(column_definitions)
     df = df.select(*columns)
@@ -34,15 +38,23 @@ def read_data(spark: SparkSession, path: str, column_definitions: dict[str, dict
     return df
 
 
-def _get_old_columns(column_definitions: dict[str, dict[str, str | DataType]]) -> list[str]:
+def _get_old_columns(
+    column_definitions: dict[str, dict[str, str | DataType]]
+) -> list[str]:
     return [column for column in column_definitions.keys()]
 
 
-def _get_column_types(column_definitions: dict[str, dict[str, str | DataType]]) -> dict[str, DataType]:
-    return {column_name: column_definition["type"]
-            for column_name, column_definition in column_definitions.items()}
+def _get_column_types(
+    column_definitions: dict[str, dict[str, str | DataType]]
+) -> dict[str, DataType]:
+    return {
+        column_name: column_definition["type"]
+        for column_name, column_definition in column_definitions.items()
+    }
 
 
 def _get_column_mapping(column_definitions: dict[str, dict[str, str | DataType]]):
-    return {old_column_name: column_definition["name"]
-            for old_column_name, column_definition in column_definitions.items()}
+    return {
+        old_column_name: column_definition["name"]
+        for old_column_name, column_definition in column_definitions.items()
+    }

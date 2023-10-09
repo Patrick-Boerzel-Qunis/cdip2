@@ -183,4 +183,4 @@ df = join_data(df, df_copy)
 
 # COMMAND ----------
 
-spark.createDataFrame(df).write.saveAsTable("`vtl-dev`.landing.bedirect_cleansed")
+spark.createDataFrame(df).write.saveAsTable("`vtl-dev`.landing.t_bed")

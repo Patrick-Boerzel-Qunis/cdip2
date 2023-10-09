@@ -124,8 +124,7 @@ def AUR14(df: pd.DataFrame) -> pd.DataFrame:
 def AUR18(df: pd.DataFrame) -> pd.DataFrame:
     _before: pd.Series = df["Strasse"].copy()
     df["Strasse"].replace(["o.A", "o. A", "o.A.", "o. A."], np.NaN, inplace=True)
-    diff = _before.compare(df["Strasse"])
-    df._stats(len(diff))
+
     return df
 
 
@@ -134,8 +133,7 @@ def AUR19(df: pd.DataFrame) -> pd.DataFrame:
     df["Telefon_complete"].replace(
         to_replace=r"^[0\+]{1,2}49[0 ]*$", value=np.NaN, regex=True, inplace=True
     )
-    diff = _before.compare(df["Telefon_complete"])
-    df._stats(len(diff))
+
     return df
 
 
@@ -147,16 +145,14 @@ def AUR20(df: pd.DataFrame) -> pd.DataFrame:
         regex=True,
         inplace=True,
     )
-    diff = _before.compare(df["Telefon_complete"])
-    df._stats(len(diff))
+
     return df
 
 
 def AUR21(df: pd.DataFrame) -> pd.DataFrame:
     _before: pd.Series = df["Hausnummer"].copy()
     df["Hausnummer"] = df["Hausnummer"].str.replace(" ", "").str.casefold()
-    diff = _before.compare(df["Hausnummer"])
-    df._stats(len(diff))
+
     return df
 
 

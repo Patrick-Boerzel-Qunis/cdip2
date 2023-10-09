@@ -138,37 +138,29 @@ def AUR14(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def AUR18(df: pd.DataFrame) -> pd.DataFrame:
-    _before: pd.Series = df["Strasse"].copy()
     df["Strasse"].replace(["o.A", "o. A", "o.A.", "o. A."], np.NaN, inplace=True)
-
     return df
 
 
 def AUR19(df: pd.DataFrame) -> pd.DataFrame:
-    _before: pd.Series = df["Telefon_complete"].copy()
     df["Telefon_complete"].replace(
         to_replace=r"^[0\+]{1,2}49[0 ]*$", value=np.NaN, regex=True, inplace=True
     )
-
     return df
 
 
 def AUR20(df: pd.DataFrame) -> pd.DataFrame:
-    _before: pd.Series = df["Telefon_complete"].copy()
     df["Telefon_complete"].replace(
         to_replace=r"^([0\+]{1,2}49)[0 ]*([1-9][ 0-9]*)$",
         value=r"\1 \2",
         regex=True,
         inplace=True,
     )
-
     return df
 
 
 def AUR21(df: pd.DataFrame) -> pd.DataFrame:
-    _before: pd.Series = df["Hausnummer"].copy()
     df["Hausnummer"] = df["Hausnummer"].str.replace(" ", "").str.casefold()
-
     return df
 
 
@@ -529,3 +521,8 @@ def AAR059(df_bed: pd.DataFrame) -> pd.DataFrame:
         .pipe(_rule_anzahl_konzernmitglieder)
         .pipe(_rule_konzernsegment)
     )
+
+
+def AUR111(df):
+    df.loc[df.Handelsname == df.Ort, "Handelsname"] = np.nan
+    return df

@@ -1,5 +1,5 @@
 import numpy as np
-from pyspark.sql.types import IntegerType, FloatType, StringType
+from pyspark.sql.types import IntegerType, FloatType, StringType, DoubleType
 
 COLUMN_DEFINITIONS = {
     "Bisnode": {
@@ -65,11 +65,11 @@ COLUMN_DEFINITIONS = {
         },
         "UMSATZ_JAHR": {
             "name": "Umsatz_Jahr",
-            "type": IntegerType(),
+            "type": FloatType(),
         },
         "SEGMENT_DICC": {
             "name": "Segment",
-            "type": IntegerType(),
+            "type": FloatType(),
         },
         "MARKETABLE": {
             "name": "Marketable",
@@ -77,7 +77,7 @@ COLUMN_DEFINITIONS = {
         },
         "HAUPTBRANCHE_08": {
             "name": "Hauptbranche",
-            "type": IntegerType(),
+            "type": StringType(),
         },
         "HAUPTBRANCHENTEXT_08": {
             "name": "Hauptbranchentext",
@@ -97,11 +97,11 @@ COLUMN_DEFINITIONS = {
         },
         "BESCHAEFTIGTE": {
             "name": "Beschaeftigte",
-            "type": IntegerType(),
+            "type": FloatType(),
         },
         "DIREKTE_MUTTER_NUMMER": {
             "name": "Direkte_Mutter_Nummer",
-            "type": IntegerType(),
+            "type": DoubleType(),
         },
         "DIREKTE_MUTTER_LAND": {
             "name": "Direkte_Mutter_Land",
@@ -109,7 +109,7 @@ COLUMN_DEFINITIONS = {
         },
         "HoechsteMutterNummer_0": {
             "name": "HNR",
-            "type": IntegerType(),
+            "type": DoubleType(),
         },
         "RECHTSFORM_TEXT": {
             "name": "Rechtsform",

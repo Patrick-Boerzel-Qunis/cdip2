@@ -213,7 +213,7 @@ COLUMN_DEFINITIONS = {
         },
         "BE_PLZ": {
             "name": "PLZ",
-            "type": StringType(),
+            "type": IntegerType(),
         },
         "BE_ORT": {
             "name": "Ort",
@@ -327,7 +327,7 @@ COLUMN_DEFINITIONS = {
     "MapPlzBundesland": {
         "PLZ": {
             "name": "PLZ",
-            "type": StringType(),
+            "type": IntegerType(),
         },
         "BUNDESLAND": {
             "name": "Bundesland",

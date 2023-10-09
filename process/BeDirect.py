@@ -191,4 +191,6 @@ df = join_data(df, df_copy)
 
 # COMMAND ----------
 
-spark.createDataFrame(df).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable("`vtl-dev`.landing.t_bed")
+spark.createDataFrame(df).write.mode("overwrite").option(
+    "overwriteSchema", "True"
+).saveAsTable("`vtl-dev`.landing.t_bed")

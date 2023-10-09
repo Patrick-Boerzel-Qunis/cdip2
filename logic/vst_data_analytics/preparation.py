@@ -28,23 +28,23 @@ def read_data(
     column_definitions: dict[str, dict[str, str | DataType]],
 ) -> DataFrame:
     df = spark.read.format("parquet").load(path)
-    columns = _get_old_columns(column_definitions)
+    columns = get_old_columns(column_definitions)
     df = df.select(*columns)
-    types = _get_column_types(column_definitions)
+    types = get_column_types(column_definitions)
     df = cast_types(df, types)
     df = df.toPandas()
-    column_mapping = _get_column_mapping(column_definitions)
+    column_mapping = get_column_mapping(column_definitions)
     df = rename_columns(df, column_mapping)
     return df
 
 
-def _get_old_columns(
+def get_old_columns(
     column_definitions: dict[str, dict[str, str | DataType]]
 ) -> list[str]:
     return [column for column in column_definitions.keys()]
 
 
-def _get_column_types(
+def get_column_types(
     column_definitions: dict[str, dict[str, str | DataType]]
 ) -> dict[str, DataType]:
     return {
@@ -53,7 +53,7 @@ def _get_column_types(
     }
 
 
-def _get_column_mapping(column_definitions: dict[str, dict[str, str | DataType]]):
+def get_column_mapping(column_definitions: dict[str, dict[str, str | DataType]]):
     return {
         old_column_name: column_definition["name"]
         for old_column_name, column_definition in column_definitions.items()

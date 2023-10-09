@@ -7,7 +7,12 @@ sys.path.append("/Workspace/Repos/lisa.mieth@qunis.de/cdip-interim/logic")
 
 # COMMAND ----------
 
-from vst_data_analytics.transformations import replace_nan, index_data, merge_data, join_data
+from vst_data_analytics.transformations import (
+    replace_nan,
+    index_data,
+    merge_data,
+    join_data,
+)
 from vst_data_analytics.preparation import read_data
 from vst_data_analytics.mappings import (
     COLUMN_DEFINITIONS,
@@ -115,15 +120,18 @@ df = AAR10(df, RECHTSREFORM_MAPPING)
 # COMMAND ----------
 
 # Select Columns & Copy Dataframe
-df_copy = df[["BED_ID", 
-              "Rechtsform",
-              "Anzahl_Niederlassungen",
-              "Firmenname",
-              "Umsatz_Code",
-              "Beschaeftigte_Code",
-              "HNR",
-              "Hauptbranche"
-]]
+df_copy = df[
+    [
+        "BED_ID",
+        "Rechtsform",
+        "Anzahl_Niederlassungen",
+        "Firmenname",
+        "Umsatz_Code",
+        "Beschaeftigte_Code",
+        "HNR",
+        "Hauptbranche",
+    ]
+]
 
 # COMMAND ----------
 

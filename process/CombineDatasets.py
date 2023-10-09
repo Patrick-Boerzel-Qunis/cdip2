@@ -36,20 +36,20 @@ from datetime import datetime
 # COMMAND ----------
 
 DNB_UNIFIED_COLUMNS = {
-    'Position_Text_1': 'DNB_Position_Text_1',
-    'Position_Text_2': 'DNB_Position_Text_2',
-    'Position_Text_3': 'DNB_Position_Text_3',
-    'Firmenzentrale_Ausland': 'DNB_Firmenzentrale_Ausland',
-    'Direkte_Mutter_Land': 'DNB_Direkte_Mutter_Land',
-    'Ehemaliger_Firmenname': 'DNB_Ehemaliger_Firmenname',
-    'Anzahl_Konzernmitglieder': 'DNB_Anzahl_Konzernmitglieder',
-    'Firmentype_Code': 'DNB_Firmentype_Code',
+    "Position_Text_1": "DNB_Position_Text_1",
+    "Position_Text_2": "DNB_Position_Text_2",
+    "Position_Text_3": "DNB_Position_Text_3",
+    "Firmenzentrale_Ausland": "DNB_Firmenzentrale_Ausland",
+    "Direkte_Mutter_Land": "DNB_Direkte_Mutter_Land",
+    "Ehemaliger_Firmenname": "DNB_Ehemaliger_Firmenname",
+    "Anzahl_Konzernmitglieder": "DNB_Anzahl_Konzernmitglieder",
+    "Firmentype_Code": "DNB_Firmentype_Code",
 }
 
 BED_UNIFIED_COLUMNS = {
-    'Anzahl_Toechter': 'BED_Anzahl_Toechter',
-    'Flag_Quality': 'BED_Flag_Quality',
-    'Tel_Select': 'BED_Tel_Select',
+    "Anzahl_Toechter": "BED_Anzahl_Toechter",
+    "Flag_Quality": "BED_Flag_Quality",
+    "Tel_Select": "BED_Tel_Select",
 }
 
 # COMMAND ----------
@@ -105,8 +105,8 @@ df_combined = pd.concat([df_dnb, df_bed])
 
 if "BED_Flag_Quality" in df_combined.columns and "Status" in df_combined.columns:
     df_combined = df_combined.assign(
-        Master_Marketable=lambda x: ((x.Marketable == "Y") & (x.Status == "aktiv")) | (
-                    x.BED_Flag_Quality == "SELECT"),
+        Master_Marketable=lambda x: ((x.Marketable == "Y") & (x.Status == "aktiv"))
+        | (x.BED_Flag_Quality == "SELECT"),
     )
 elif "Status" in df_combined.columns:
     df_combined = df_combined.assign(
@@ -127,8 +127,7 @@ df_combined = df_combined.assign(
 )
 if "GP_RAW_ID" not in df_combined.columns:
     df_combined = df_combined.assign(
-        GP_RAW_ID=range(0, df_combined.shape[0]),
-        GP_RAW_ID_index=lambda x: x.GP_RAW_ID
+        GP_RAW_ID=range(0, df_combined.shape[0]), GP_RAW_ID_index=lambda x: x.GP_RAW_ID
     ).set_index("GP_RAW_ID_index")
 
 now: str = str(datetime.now())
@@ -157,7 +156,7 @@ df = AUR14(df)
 df = AUR18(df)
 df = AUR19(df)
 df = AUR20(df)
-df= AUR21(df)
+df = AUR21(df)
 # Funktioniert nicht ohne DunBradstreet Daten
 # df = AUR108(df)
 # df = AUR109(df)

@@ -89,7 +89,7 @@ COLUMN_DEFINITIONS = {
         },
         "ANZAHL_NIEDERLASSUNGEN": {
             "name": "Anzahl_Niederlassungen",
-            "type": IntegerType(),
+            "type": StringType(),
         },
         "ANZAHL_KONZERNMITGLIEDER": {
             "name": "Anzahl_Konzernmitglieder",

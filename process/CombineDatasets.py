@@ -3,7 +3,7 @@ import sys
 
 # COMMAND ----------
 
-sys.path.append("/Workspace/Repos/lisa.mieth@qunis.de/cdip-interim/logic")
+sys.path.append("/Workspace/Repos/libs/cdip-interim/logic")
 
 # COMMAND ----------
 
@@ -20,6 +20,7 @@ from vst_data_analytics.rules import (
     AUR21,
     AUR108,
     AUR109,
+    AUR111
 )
 
 # COMMAND ----------
@@ -54,8 +55,7 @@ BED_UNIFIED_COLUMNS = {
 
 # COMMAND ----------
 
-# ToDo: Read DunBradstreet
-df_dnb = pd.DataFrame()
+df_dnb = spark.read.table("`vtl-dev`.landing.t_dnb").toPandas()
 df_bed = spark.read.table("`vtl-dev`.landing.t_bed").toPandas()
 
 # COMMAND ----------
@@ -157,7 +157,35 @@ df = AUR18(df)
 df = AUR19(df)
 df = AUR20(df)
 df = AUR21(df)
-# Funktioniert nicht ohne DunBradstreet Daten
-# df = AUR108(df)
-# df = AUR109(df)
-# AUR111 fehlt in der Repo?
+df = AUR108(df)
+df = AUR109(df)
+df = AUR111(df) # Is this needed, as in the first draft it was not included
+df
+
+# COMMAND ----------
+
+df_final = spark.createDataFrame(df)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+# MAGIC *Titel_2* and *Title_3* can be of type *void*, so explicitly cast to string
+
+# COMMAND ----------
+
+from pyspark.sql.types import StringType
+
+possible_null_columns = {"Titel_2": StringType(), "Titel_3": StringType()}
+for col_name, col_type in possible_null_columns.items():
+    df_final = df_final.withColumn(col_name, df_final[col_name].cast(col_type))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+# MAGIC ## Write Data
+
+# COMMAND ----------
+
+df_final.write.mode("overwrite").option("overwriteSchema", "True").saveAsTable("`vtl-dev`.bronze.t_aufbereitung")

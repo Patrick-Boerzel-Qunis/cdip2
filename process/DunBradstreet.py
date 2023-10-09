@@ -3,8 +3,7 @@ import sys
 
 # COMMAND ----------
 
-# sys.path.append("/Workspace/Repos/libs/cdip-interim/logic")
-sys.path.append("/Workspace/Repos/patrick.boerzel@qunis.de/cdip-interim/logic")
+sys.path.append("/Workspace/Repos/libs/cdip-interim/logic")
 
 # COMMAND ----------
 

@@ -29,7 +29,7 @@ COLUMN_DEFINITIONS = {
         },
         "PLZ_STRASSE": {
             "name": "PLZ",
-            "type": IntegerType(),
+            "type": StringType(),
         },
         "ORT_STRASSE": {
             "name": "Ort",
@@ -53,11 +53,11 @@ COLUMN_DEFINITIONS = {
         },
         "VORWAHL_TELEFON": {
             "name": "Vorwahl_Telefon",
-            "type": IntegerType(),
+            "type": StringType(),
         },
         "TELEFON": {
             "name": "Telefon",
-            "type": IntegerType(),
+            "type": StringType(),
         },
         "UMSATZ": {
             "name": "Umsatz",
@@ -213,7 +213,7 @@ COLUMN_DEFINITIONS = {
         },
         "BE_PLZ": {
             "name": "PLZ",
-            "type": IntegerType(),
+            "type": StringType(),
         },
         "BE_ORT": {
             "name": "Ort",
@@ -327,7 +327,7 @@ COLUMN_DEFINITIONS = {
     "MapPlzBundesland": {
         "PLZ": {
             "name": "PLZ",
-            "type": IntegerType(),
+            "type": StringType(),
         },
         "BUNDESLAND": {
             "name": "Bundesland",

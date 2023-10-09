@@ -118,14 +118,6 @@ df
 
 # COMMAND ----------
 
-df.dtypes
-
-# COMMAND ----------
-
-spark.createDataFrame(df).printSchema()
-
-# COMMAND ----------
-
 col_types = {
     **get_column_types(COLUMN_DEFINITIONS["Bisnode"]),
     **get_column_types(COLUMN_DEFINITIONS["BisnodePrimus"]),

@@ -46,12 +46,17 @@ from vst_data_analytics.rules import (
 
 # COMMAND ----------
 
+version = "00"
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Preparation
 
 # COMMAND ----------
 
-bedirect_path = "abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/bedirect_2023_7_V.00_0.parquet"
+# bedirect_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/bedirect_2023_7_V.{version}_*.parquet"
+bedirect_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/bedirect_2023_7_V.{version}_0.parquet"
 df_raw = read_data(spark, bedirect_path, COLUMN_DEFINITIONS["BeDirect"])
 
 # COMMAND ----------
@@ -85,7 +90,8 @@ df = index_data(df, "BED_ID")
 
 # COMMAND ----------
 
-plz_mapping_path = "abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/plz_bundesland_mapping_2023_7_V.00_0.parquet"
+# plz_mapping_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/plz_bundesland_mapping_2023_7_V.{version}_*.parquet"
+plz_mapping_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/plz_bundesland_mapping_2023_7_V.{version}_0.parquet"
 df_plz = read_data(spark, plz_mapping_path, COLUMN_DEFINITIONS["MapPlzBundesland"])
 df_plz = df_plz.drop_duplicates(subset="PLZ")
 
@@ -100,7 +106,8 @@ df = merge_data(df, df_plz, merge_on="PLZ")
 
 # COMMAND ----------
 
-bed_branch_path = "abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/bed_branch_mapping_2023_7_V.00_0.parquet"
+# bed_branch_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/bed_branch_mapping_2023_7_V.{version}_*.parquet"
+bed_branch_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/bed_branch_mapping_2023_7_V.{version}_0.parquet"
 df_bed_branch = read_data(spark, bed_branch_path, COLUMN_DEFINITIONS["MapBedBranche"])
 df_bed_branch = df_bed_branch.drop_duplicates()
 
@@ -144,7 +151,8 @@ df_copy = AAR050(df_copy)
 
 # COMMAND ----------
 
-bisnode_path = "abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/01_bisnode_2023_7_V.00_0.parquet"
+# bisnode_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/01_bisnode_2023_7_V.{version}_*.parquet"
+bisnode_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/01_bisnode_2023_7_V.{version}_0.parquet"
 df_bisnode = read_data(spark, bisnode_path, COLUMN_DEFINITIONS["BisnodeForBeD"])
 
 # COMMAND ----------
@@ -153,7 +161,8 @@ df_copy = AAR051(df_copy, df_bisnode)
 
 # COMMAND ----------
 
-industrie_path = "abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/industriescore_2023_7_V.00_0.parquet"
+# industrie_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/industriescore_2023_7_V.{version}_*.parquet"
+industrie_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/industriescore_2023_7_V.{version}_0.parquet"
 df_industrie = read_data(spark, industrie_path, COLUMN_DEFINITIONS["Industriescore"])
 
 # COMMAND ----------

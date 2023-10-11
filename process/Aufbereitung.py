@@ -20,7 +20,7 @@ from vst_data_analytics.rules import (
     AUR21,
     AUR108,
     AUR109,
-    AUR111
+    AUR111,
 )
 
 # COMMAND ----------
@@ -159,7 +159,7 @@ df = AUR20(df)
 df = AUR21(df)
 df = AUR108(df)
 df = AUR109(df)
-df = AUR111(df) # Is this needed, as in the first draft it was not included
+df = AUR111(df)  # Is this needed, as in the first draft it was not included
 df
 
 # COMMAND ----------
@@ -188,4 +188,6 @@ for col_name, col_type in possible_null_columns.items():
 
 # COMMAND ----------
 
-df_final.write.mode("overwrite").option("overwriteSchema", "True").saveAsTable("`vtl-dev`.bronze.t_aufbereitung")
+df_final.write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(
+    "`vtl-dev`.bronze.t_aufbereitung"
+)

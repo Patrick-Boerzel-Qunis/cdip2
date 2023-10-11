@@ -1,3 +1,5 @@
+import requests
+
 import numpy as np
 import pandas as pd
 
@@ -526,3 +528,151 @@ def AAR059(df_bed: pd.DataFrame) -> pd.DataFrame:
 def AUR111(df):
     df.loc[df.Handelsname == df.Ort, "Handelsname"] = np.nan
     return df
+
+
+def AddressMaster(
+    df: pd.DataFrame,
+    url: str,
+    headers: dict[str, str] = None,
+    batch_size=10_000,
+    index_key="GP_RAW_ID",
+) -> pd.DataFrame:
+    _headers = headers or dict()
+    data_size = df.shape[0]
+    tasks = []
+    _from = 0
+    while _from < data_size:
+        _to = _from + batch_size if _from + batch_size < data_size else data_size
+        tasks.append(df.iloc[_from:_to])
+        _from = _to
+
+    responses = []
+    for task in tasks:
+        try:
+            _json_payload = (
+                task.assign(address=lambda x: x.fillna("").to_dict("records"))[
+                    [index_key, "address"]
+                ]
+                .rename(columns={index_key: "requestId"})
+                .to_json(orient="records", force_ascii=True)
+            )
+            _response_api = requests.post(url, data=_json_payload, headers=_headers)
+            if not _response_api.ok:
+                print(
+                    f"Error: VT AddressMaster request failed: {_response_api.status_code}"
+                )
+                print(_response_api.content.decode("UTF-8"))
+                continue
+            df_res: pd.DataFrame = pd.read_json(
+                path_or_buf=_response_api.content.decode()
+            )
+            am: pd.DataFrame = pd.concat(
+                [
+                    df_res.drop(["validationResult"], axis=1),
+                    pd.json_normalize(df_res["validationResult"]),
+                ],
+                axis=1,
+            ).rename(columns={"requestId": index_key})
+            am.dropna(thresh=am.shape[1] - 3, inplace=True)
+            # am[index_key] = am[index_key].astype(int)
+            am["exactAddress.addressId"] = am["exactAddress.addressId"].astype(int)
+            # df_res = task.assign(GP_RAW_ID=lambda x: x[index_key].astype(np.float32)).join(other=am.set_index(index_key), on=index_key)
+            # am.set_index(index_key, inplace=True)
+            print(f"TASK cols: {task.columns}")
+            print(f"am columns: {am.columns}")
+            print(f"JOIN ON {index_key}")
+            df_res = task.merge(am, on=index_key, how="left")
+            df_res = df_res.rename(
+                columns={
+                    "exactAddress.streetNr": "VT_Hausnummer",
+                    "exactAddress.city": "VT_Ort",
+                    "exactAddress.postCode": "VT_PLZ",
+                    "exactAddress.street": "VT_Strasse",
+                    "exactAddress.source": "VT_source",
+                    "exactAddress.state": "VT_Bundesland",
+                    "exactAddress.district": "VT_Ortsteil",
+                    "exactAddress.streetNrSuffix": "VT_Hausnummernzusatz",
+                    "exactAddress.addressId": "VT_addressId",
+                    "exactAddress.klsId": "VT_DTAG_addressId",
+                    "exactAddress.hereId": "VT_Nokia_Here_addressId",
+                    "exactAddress.addition.source": "VT_Addition_source",
+                    "exactAddress.addition.xEtrs89": "VT_Langengrad_etrs89",
+                    "exactAddress.addition.yEtrs89": "VT_Breitengrad_etrs89",
+                    "exactAddress.addition.areaCode": "VT_Ortsnetzkennzahl",
+                    "exactAddress.addition.agsn": "VT_agsn",
+                }
+            ).drop(columns=["possibleAddresses"])
+            if "exactAddress" in df_res.columns:
+                df_res.drop(columns=["exactAddress"], inplace=True)
+            # the possibleAddresses column contains alternative match, JSON encoded, with the same format as exact match address
+            # it needs to be parsed, or normalized, as pandas does not support JSON type in 'object' type column to be stored in DB
+            # (to_sql method fails with exception). Need to specify colum to be of JSON type in order to_sql would work
+            df_res = (
+                df_res.assign(
+                    Exact_Bundesland=lambda x: np.where(
+                        x["state"] != x["VT_Bundesland"], x["VT_Bundesland"], np.NaN
+                    ),
+                    Exact_Hausnummer=lambda x: np.where(
+                        x["streetNr"] != x["VT_Hausnummer"], x["VT_Hausnummer"], np.NaN
+                    ),
+                    Exact_Strasse=lambda x: np.where(
+                        x["street"] != x["VT_Strasse"], x["VT_Strasse"], np.NaN
+                    ),
+                    Exact_PLZ=lambda x: np.where(
+                        x["postCode"] != x["VT_PLZ"], x["VT_PLZ"], np.NaN
+                    ),
+                    Exact_Ort=lambda x: np.where(
+                        x["city"] != x["VT_Ort"], x["VT_Ort"], np.NaN
+                    ),
+                    Bundesland=lambda x: np.where(
+                        x["Exact_Bundesland"].isnull(),
+                        x["state"],
+                        x["Exact_Bundesland"],
+                    ),
+                    Hausnummer=lambda x: np.where(
+                        x["Exact_Hausnummer"].isnull(),
+                        x["streetNr"],
+                        x["Exact_Hausnummer"],
+                    ),
+                    PLZ=lambda x: np.where(
+                        x["Exact_PLZ"].isnull(), x["postCode"], x["Exact_PLZ"]
+                    ),
+                    Ort=lambda x: np.where(
+                        x["Exact_Ort"].isnull(), x["city"], x["Exact_Ort"]
+                    ),
+                    Strasse=lambda x: np.where(
+                        x["Exact_Strasse"].isnull(), x["street"], x["Exact_Strasse"]
+                    ),
+                )
+                .drop(columns=["state", "streetNr", "street", "postCode", "city"])
+                .drop(
+                    columns=[
+                        "VT_PLZ",
+                        "VT_source",
+                        "VT_Bundesland",
+                        "VT_Ort",
+                        "VT_Ortsteil",
+                        "VT_Strasse",
+                        "VT_Hausnummer",
+                        "VT_Hausnummernzusatz",
+                        "VT_DTAG_addressId",
+                        "VT_Nokia_Here_addressId",
+                        "VT_Addition_source",
+                        "VT_Ortsnetzkennzahl",
+                        "VT_agsn",
+                        "VT_Langengrad_etrs89",
+                        "VT_Breitengrad_etrs89",
+                        "Exact_Bundesland",
+                        "Exact_Hausnummer",
+                        "Exact_Strasse",
+                        "Exact_PLZ",
+                        "Exact_Ort",
+                    ]
+                )
+            )
+            responses.append(df_res)
+            print("Info: Batch processed.")
+        except Exception as err:
+            print(f"Error: VT Address master loop threw exception: {err}")
+    print("Info: VT Address Master: completed.")
+    return pd.concat(responses)

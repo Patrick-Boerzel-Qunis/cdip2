@@ -530,7 +530,7 @@ def AUR111(df):
     return df
 
 
-def AddressMaster(
+def address_master(
     df: pd.DataFrame,
     url: str,
     headers: dict[str, str] = None,

@@ -676,3 +676,8 @@ def address_master(
             print(f"Error: VT Address master loop threw exception: {err}")
     print("Info: VT Address Master: completed.")
     return pd.concat(responses)
+
+def create_hauptbranche_id(df: pd.DataFrame) -> pd.DataFrame:
+        df["Hauptbranche_id"] = df.Hauptbranche.str[:2]
+        return df
+

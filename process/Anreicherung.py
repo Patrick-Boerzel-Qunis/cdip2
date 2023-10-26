@@ -7,7 +7,7 @@ import sys
 
 # COMMAND ----------
 
-sys.path.append("/Workspace/Repos/libs/cdip-interim/logic")
+sys.path.append("/Workspace/Repos/gerd.first-gruettner@qunis.de/cdip-interim/logic")
 
 # COMMAND ----------
 
@@ -15,7 +15,7 @@ import pandas as pd
 
 # COMMAND ----------
 
-from vst_data_analytics.rules import address_master
+from vst_data_analytics.rules import address_master, create_hauptbranche_id
 from vst_data_analytics.transformations import merge_data
 from vst_data_analytics.constants import ADDRESS_MASTER_URL, ADDRESS_MASTER_HEADERS
 
@@ -46,3 +46,11 @@ df_address_master
 
 df_address_master = address_master(df=df_address_master, url=ADDRESS_MASTER_URL, headers=ADDRESS_MASTER_HEADERS)
 df_address_master
+
+# COMMAND ----------
+
+df = merge_data(df_auf, df_address_master)
+df = create_hauptbranche_id(df)
+df
+
+

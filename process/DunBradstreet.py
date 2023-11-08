@@ -8,7 +8,7 @@ user_id
 
 # COMMAND ----------
 
-sys.path.append(f"/Workspace/Repos/{user_id}/cdip-interim/logic")
+sys.path.append(f"../logic")
 
 # COMMAND ----------
 
@@ -30,6 +30,10 @@ version = "00"
 
 # MAGIC %md
 # MAGIC # Bisnode
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 

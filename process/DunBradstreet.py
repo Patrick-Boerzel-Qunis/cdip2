@@ -1,8 +1,18 @@
 # Databricks notebook source
 import sys
+import dask.dataframe as dd
+import dask.array as da
+import dask.bag as db
 
 # COMMAND ----------
 
+<<<<<<< Updated upstream
+=======
+user_id = spark.sql('select current_user() as user').collect()[0]['user']
+
+# COMMAND ----------
+
+>>>>>>> Stashed changes
 sys.path.append(f"../logic")
 
 # COMMAND ----------
@@ -20,6 +30,26 @@ from vst_data_analytics.rules import AUR02_DnB, AUR03_DnB
 # COMMAND ----------
 
 version = "00"
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC # Dask
+
+# COMMAND ----------
+
+path_to=  f"abfss://landing@cdip0dev0std.dfs.core.windows.net/data/01_bisnode_2023_7_V.{version}_0.parquet"
+dask_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
+
+# COMMAND ----------
+
+storage_options = {'account_name': 'cdip0dev0std', 'account_key':dask_key}
+
+
+# COMMAND ----------
+
+ddf = dd.read_parquet('az://landing/data/01_bisnode_2023_7_V.00_*.parquet', storage_options=storage_options)
+ddf.head(19)
 
 # COMMAND ----------
 

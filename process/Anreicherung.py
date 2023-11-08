@@ -12,7 +12,7 @@ user_id
 
 # COMMAND ----------
 
-sys.path.append("/Workspace/Repos/gerd.first-gruettner@qunis.de/cdip-interim/logic")
+sys.path.append(f"/Workspace/Repos/{user_id}/cdip-interim/logic")
 
 # COMMAND ----------
 

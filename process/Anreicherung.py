@@ -7,6 +7,11 @@ import sys
 
 # COMMAND ----------
 
+user_id = spark.sql('select current_user() as user').collect()[0]['user']
+user_id
+
+# COMMAND ----------
+
 sys.path.append("/Workspace/Repos/gerd.first-gruettner@qunis.de/cdip-interim/logic")
 
 # COMMAND ----------

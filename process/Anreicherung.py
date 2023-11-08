@@ -1,8 +1,4 @@
 # Databricks notebook source
-dbutils.library.restartPython()
-
-# COMMAND ----------
-
 import sys
 
 # COMMAND ----------
@@ -13,10 +9,6 @@ user_id
 # COMMAND ----------
 
 sys.path.append(f"/Workspace/Repos/{user_id}/cdip-interim/logic")
-
-# COMMAND ----------
-
-import pandas as pd
 
 # COMMAND ----------
 
@@ -57,5 +49,3 @@ df_address_master
 df = merge_data(df_auf, df_address_master)
 df = create_hauptbranche_id(df)
 df
-
-

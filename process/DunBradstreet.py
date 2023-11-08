@@ -3,11 +3,6 @@ import sys
 
 # COMMAND ----------
 
-user_id = spark.sql('select current_user() as user').collect()[0]['user']
-user_id
-
-# COMMAND ----------
-
 sys.path.append(f"../logic")
 
 # COMMAND ----------
@@ -33,14 +28,14 @@ version = "00"
 
 # COMMAND ----------
 
-path_to=  f"abfss://landing@cdip0dev0std.dfs.core.windows.net/data/01_bisnode_2023_7_V.{version}_0.parquet"
+bisnode_path =  f"abfss://landing@cdip0dev0std.dfs.core.windows.net/data/01_bisnode_2023_7_V.{version}_0.parquet"
 
 # COMMAND ----------
 
 # df_bisnode = read_data(spark, f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/01_bisnode_2023_7_V.{version}_*.parquet", COLUMN_DEFINITIONS["Bisnode"])
 df_bisnode = read_data(
     spark,
-    f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/01_bisnode_2023_7_V.{version}_0.parquet",
+    bisnode_path,
     COLUMN_DEFINITIONS["Bisnode"],
 )
 df_bisnode

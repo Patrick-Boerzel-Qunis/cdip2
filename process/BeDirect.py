@@ -3,7 +3,12 @@ import sys
 
 # COMMAND ----------
 
-sys.path.append("/Workspace/Repos/libs/cdip-interim/logic")
+user_id = spark.sql('select current_user() as user').collect()[0]['user']
+user_id
+
+# COMMAND ----------
+
+sys.path.append(f"/Workspace/Repos/{user_id}/cdip-interim/logic")
 
 # COMMAND ----------
 

@@ -33,7 +33,7 @@ version = "00"
 
 # COMMAND ----------
 
-
+path_to=  f"abfss://landing@cdip0dev0std.dfs.core.windows.net/data/01_bisnode_2023_7_V.{version}_0.parquet"
 
 # COMMAND ----------
 

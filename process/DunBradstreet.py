@@ -6,13 +6,10 @@ import dask.bag as db
 
 # COMMAND ----------
 
-<<<<<<< Updated upstream
-=======
 user_id = spark.sql('select current_user() as user').collect()[0]['user']
 
 # COMMAND ----------
 
->>>>>>> Stashed changes
 sys.path.append(f"../logic")
 
 # COMMAND ----------

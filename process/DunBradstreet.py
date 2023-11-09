@@ -1,12 +1,9 @@
 # Databricks notebook source
-import sys
-import dask.dataframe as dd
-import dask.array as da
-import dask.bag as db
+# MAGIC %pip install pandas==2.1.2
 
 # COMMAND ----------
 
-user_id = spark.sql('select current_user() as user').collect()[0]['user']
+import sys
 
 # COMMAND ----------
 
@@ -14,7 +11,11 @@ sys.path.append(f"../logic")
 
 # COMMAND ----------
 
-from vst_data_analytics.mappings import COLUMN_DEFINITIONS, MAP_GENDER, MAP_TITLE
+from vst_data_analytics.mappings import (
+    COLUMN_DEFINITIONS,
+    MAP_GENDER,
+    MAP_TITLE,
+)
 from vst_data_analytics.preparation import (
     read_data,
     cast_types,
@@ -30,23 +31,22 @@ version = "00"
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC # Dask
+account_name = "cdip0dev0std"
+account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
-path_to=  f"abfss://landing@cdip0dev0std.dfs.core.windows.net/data/01_bisnode_2023_7_V.{version}_0.parquet"
-dask_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
+test_path = f"az://landing/data/01_bisnode_2023_7_V.{version}_*.parquet"
 
 # COMMAND ----------
 
-storage_options = {'account_name': 'cdip0dev0std', 'account_key':dask_key}
-
-
-# COMMAND ----------
-
-ddf = dd.read_parquet('az://landing/data/01_bisnode_2023_7_V.00_*.parquet', storage_options=storage_options)
-ddf.head(19)
+df_test = read_data(
+    path=test_path,
+    column_definitions=COLUMN_DEFINITIONS["Bisnode"],
+    account_name=account_name,
+    account_key=account_key,
+)
+df_test.head(20)
 
 # COMMAND ----------
 

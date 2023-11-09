@@ -1,375 +1,374 @@
 import numpy as np
-from pyspark.sql.types import DoubleType, FloatType, IntegerType, StringType
 
 COLUMN_DEFINITIONS = {
     "Bisnode": {
         "FIRMENNUMMER": {
             "name": "BisnodeID",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "STATUS": {
             "name": "Status",
-            "type": StringType(),
+            "type": "object",
         },
         "FIRMENNAME": {
             "name": "Firmenname",
-            "type": StringType(),
+            "type": "object",
         },
         "FIRMENTYP_LANGTEXT": {
             "name": "Firmentype",
-            "type": StringType(),
+            "type": "object",
         },
         "HANDELSNAME": {
             "name": "Handelsname",
-            "type": StringType(),
+            "type": "object",
         },
         "DNB_D_U_N_S_NUMMER": {
             "name": "DUNS_Nummer",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "PLZ_STRASSE": {
             "name": "PLZ",
-            "type": StringType(),
+            "type": "object",
         },
         "ORT_STRASSE": {
             "name": "Ort",
-            "type": StringType(),
+            "type": "object",
         },
         "STRASSE": {
             "name": "Strasse",
-            "type": StringType(),
+            "type": "object",
         },
         "HAUSNUMMER": {
             "name": "Hausnummer",
-            "type": StringType(),
+            "type": "object",
         },
         "BUNDESLAND": {
             "name": "Bundesland",
-            "type": StringType(),
+            "type": "object",
         },
         "GKZ": {
             "name": "GKZ",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "VORWAHL_TELEFON": {
             "name": "Vorwahl_Telefon",
-            "type": StringType(),
+            "type": "object",
         },
         "TELEFON": {
             "name": "Telefon",
-            "type": StringType(),
+            "type": "object",
         },
         "UMSATZ": {
             "name": "Umsatz",
-            "type": FloatType(),
+            "type": "Float64",
         },
         "UMSATZ_JAHR": {
             "name": "Umsatz_Jahr",
-            "type": FloatType(),
+            "type": "Float64",
         },
         "SEGMENT_DICC": {
             "name": "Segment",
-            "type": FloatType(),
+            "type": "Float64",
         },
         "MARKETABLE": {
             "name": "Marketable",
-            "type": StringType(),
+            "type": "object",
         },
         "HAUPTBRANCHE_08": {
             "name": "Hauptbranche",
-            "type": StringType(),
+            "type": "object",
         },
         "HAUPTBRANCHENTEXT_08": {
             "name": "Hauptbranchentext",
-            "type": StringType(),
+            "type": "object",
         },
         "NEBENBRANCHE_08": {
             "name": "Nebenbranche",
-            "type": StringType(),
+            "type": "object",
         },
         "ANZAHL_NIEDERLASSUNGEN": {
             "name": "Anzahl_Niederlassungen",
-            "type": StringType(),
+            "type": "object",
         },
         "ANZAHL_KONZERNMITGLIEDER": {
             "name": "Anzahl_Konzernmitglieder",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "BESCHAEFTIGTE": {
             "name": "Beschaeftigte",
-            "type": FloatType(),
+            "type": "Float64",
         },
         "DIREKTE_MUTTER_NUMMER": {
             "name": "Direkte_Mutter_Nummer",
-            "type": DoubleType(),
+            "type": "Float64",
         },
         "DIREKTE_MUTTER_LAND": {
             "name": "Direkte_Mutter_Land",
-            "type": StringType(),
+            "type": "object",
         },
         "HoechsteMutterNummer_0": {
             "name": "HNR",
-            "type": DoubleType(),
+            "type": "Float64",
         },
         "RECHTSFORM_TEXT": {
             "name": "Rechtsform",
-            "type": StringType(),
+            "type": "object",
         },
         "EHEMALIGER_FIRMENNAME": {
             "name": "Ehemaliger_Firmenname",
-            "type": StringType(),
+            "type": "object",
         },
         "HANDELSREGISTER": {
             "name": "Register",
-            "type": StringType(),
+            "type": "object",
         },
     },
     "BisnodePrimus": {
         "DNB_D_U_N_S_NUMMER": {
             "name": "DUNS_Nummer",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "GESCHLECHT_TEXT_1": {
             "name": "Geschlecht_Text_1",
-            "type": StringType(),
+            "type": "object",
         },
         "GESCHLECHT_TEXT_2": {
             "name": "Geschlecht_Text_2",
-            "type": StringType(),
+            "type": "object",
         },
         "GESCHLECHT_TEXT_3": {
             "name": "Geschlecht_Text_3",
-            "type": StringType(),
+            "type": "object",
         },
         "TITEL_1": {
             "name": "Titel_1",
-            "type": StringType(),
+            "type": "object",
         },
         "TITEL_2": {
             "name": "Titel_2",
-            "type": StringType(),
+            "type": "object",
         },
         "TITEL_3": {
             "name": "Titel_3",
-            "type": StringType(),
+            "type": "object",
         },
         "NAME_1": {
             "name": "Name_1",
-            "type": StringType(),
+            "type": "object",
         },
         "NAME_2": {
             "name": "Name_2",
-            "type": StringType(),
+            "type": "object",
         },
         "NAME_3": {
             "name": "Name_3",
-            "type": StringType(),
+            "type": "object",
         },
         "VORNAME_1": {
             "name": "Vorname_1",
-            "type": StringType(),
+            "type": "object",
         },
         "VORNAME_2": {
             "name": "Vorname_2",
-            "type": StringType(),
+            "type": "object",
         },
         "VORNAME_3": {
             "name": "Vorname_3",
-            "type": StringType(),
+            "type": "object",
         },
         "POSITION_TEXT_1": {
             "name": "Position_Text_1",
-            "type": StringType(),
+            "type": "object",
         },
         "POSITION_TEXT_2": {
             "name": "Position_Text_2",
-            "type": StringType(),
+            "type": "object",
         },
         "POSITION_TEXT_3": {
             "name": "Position_Text_3",
-            "type": StringType(),
+            "type": "object",
         },
         "INTERNET_ADRESSE": {
             "name": "Website",
-            "type": StringType(),
+            "type": "object",
         },
         "EMAIL": {
             "name": "Email",
-            "type": StringType(),
+            "type": "object",
         },
         "FIRMENZENTRALE_AUSLAND": {
             "name": "Firmenzentrale_Ausland",
-            "type": StringType(),
+            "type": "object",
         },
     },
     "BeDirect": {
         "BE_ID": {
             "name": "BED_ID",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "BE_FIRMENNAME_GESAMT": {
             "name": "Firmenname",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_PLZ": {
             "name": "PLZ",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_ORT": {
             "name": "Ort",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_STRASSE": {
             "name": "Strasse",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_HAUSNUMMER": {
             "name": "Hausnummer",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_VORWAHL": {
             "name": "Vorwahl_Telefon",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_RUFNUMMER": {
             "name": "Telefon",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_E_MAIL": {
             "name": "Email",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_HOMEPAGE": {
             "name": "Website",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_PRIMAERBRANCHE": {
             "name": "Hauptbranche",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_BRANCHE2": {
             "name": "Nebenbranche_1",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_BRANCHE3": {
             "name": "Nebenbranche_2",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_BRANCHE4": {
             "name": "Nebenbranche_3",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_BRANCHE5": {
             "name": "Nebenbranche_4",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_MITARBEITERSTAFFEL": {
             "name": "Beschaeftigte_Code",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_ANZAHL_NL_FILIALEN": {
             "name": "Anzahl_Niederlassungen",
-            "type": StringType(),
+            "type": "object",
         },
         "HR_TYP": {
             "name": "Register_Type",
-            "type": StringType(),
+            "type": "object",
         },
         "HR_NUMMER": {
             "name": "Register_Nummer",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_UMSATZSTAFFEL": {
             "name": "Umsatz_Code",
-            "type": StringType(),
+            "type": "object",
         },
         "TELEFON_SELECT": {
             "name": "Tel_Select",
-            "type": StringType(),
+            "type": "object",
         },
         "FLAG_QUALITAET_ORG": {
             "name": "Flag_Quality",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_ANREDE": {
             "name": "Geschlecht_Text",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_TITEL": {
             "name": "Titel",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_VORNAME": {
             "name": "Vorname",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_NACHNAME": {
             "name": "Name",
-            "type": StringType(),
+            "type": "object",
         },
         "BE_PREFIX": {
             "name": "Prefix_Name",
-            "type": StringType(),
+            "type": "object",
         },
         "BIPID_DIREKTE_MUTTER": {
             "name": "Direkte_Mutter_Nummer",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "BIPID_HOECHSTE_MUTTER": {
             "name": "HNR",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "BE_RECHTSFORM_ID": {
             "name": "Rechtsform",
-            "type": StringType(),
+            "type": "object",
         },
     },
     "MapPlzBundesland": {
         "PLZ": {
             "name": "PLZ",
-            "type": StringType(),
+            "type": "object",
         },
         "BUNDESLAND": {
             "name": "Bundesland",
-            "type": StringType(),
+            "type": "object",
         },
     },
     "MapBedBranche": {
         "BRANCHE": {
             "name": "Hauptbranche",
-            "type": StringType(),
+            "type": "object",
         },
         "BRANCHENTEXT": {
             "name": "Hauptbranchentext",
-            "type": StringType(),
+            "type": "object",
         },
     },
     "BisnodeForBeD": {
         "FIRMENNUMMER": {
             "name": "BisnodeID",
-            "type": StringType(),
+            "type": "object",
         },
         "DNB_D_U_N_S_NUMMER": {
             "name": "DUNS_Nummer",
-            "type": StringType(),
+            "type": "object",
         },
         "BESCHAEFTIGTE": {
             "name": "Beschaeftigte",
-            "type": StringType(),
+            "type": "object",
         },
         "UMSATZ": {
             "name": "Umsatz",
-            "type": StringType(),
+            "type": "object",
         },
     },
     "Industriescore": {
         "WZ8_H5_CODE": {
             "name": "Hauptbranche",
-            "type": StringType(),
+            "type": "object",
         },
         "INDUSTRY_SCORE": {
             "name": "Industry_Score",
-            "type": IntegerType(),
+            "type": "Int64",
         },
     },
 }

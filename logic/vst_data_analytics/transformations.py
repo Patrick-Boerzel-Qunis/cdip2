@@ -1,10 +1,9 @@
-from functools import reduce
-
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 
 
-def rename_columns(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
+def rename_columns(df: dd.DataFrame, mapping: dict[str, str]) -> dd.DataFrame:
     return df.rename(columns=mapping)
 
 

@@ -536,7 +536,7 @@ def address_master(
     batch_size=10_000,
     index_key="GP_RAW_ID",
 ) -> pd.DataFrame:
-    _headers = headers or dict()
+    _headers = headers or {}
     data_size = df.shape[0]
     tasks = []
     _from = 0
@@ -555,7 +555,9 @@ def address_master(
                 .rename(columns={index_key: "requestId"})
                 .to_json(orient="records", force_ascii=True)
             )
-            _response_api = requests.post(url, data=_json_payload, headers=_headers)
+            _response_api = requests.post(  # noqa
+                url, data=_json_payload, headers=_headers
+            )
             if not _response_api.ok:
                 print(
                     f"Error: VT AddressMaster request failed: {_response_api.status_code}"

@@ -17,7 +17,7 @@ def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
 
     _idx_name: str = df.index.name
 
-    if not name in df.columns and name != _idx_name:
+    if name not in df.columns and name != _idx_name:
         return df
 
     _idx_name_copy: str = f"{name}_index"
@@ -30,7 +30,7 @@ def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
         _model_data = df.reset_index(drop=_drop)
     else:
         _model_data = df
-    if not _idx_name_copy in _model_data.columns:
+    if _idx_name_copy not in _model_data.columns:
         _model_data[_idx_name_copy] = _model_data[name]
     _model_data = _model_data.set_index(_idx_name_copy, verify_integrity=True)
 

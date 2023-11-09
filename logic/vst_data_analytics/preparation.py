@@ -2,11 +2,6 @@ import dask.dataframe as dd
 
 from vst_data_analytics.transformations import rename_columns
 
-"""
-Separate Spark logic for loading from business logic, which is written in pandas at
-the moment.
-"""
-
 
 def sanitize_none(val: str) -> str:
     return val if val != "None" else None
@@ -42,7 +37,7 @@ def read_data(
 
 
 def get_old_columns(column_definitions: dict[str, dict[str, str]]) -> list[str]:
-    return [column for column in column_definitions.keys()]
+    return list(column_definitions.keys())
 
 
 def get_column_types(column_definitions: dict[str, dict[str, str]]) -> dict[str, str]:

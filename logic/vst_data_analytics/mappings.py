@@ -395,7 +395,6 @@ MAP_TITLE = {
     "Dr. mult.": "Dr.",
     "Dr. med": "Dr.",
     "Dr. h.c.": "Dr.",
-    "Prof. Dr. med.": "Prof. Dr.",
     "Prof. Dr. Dr. h. c.": "Prof. Dr.",
     "Dr. Ingenieur": "Dr.",
     "Botschafter": np.nan,

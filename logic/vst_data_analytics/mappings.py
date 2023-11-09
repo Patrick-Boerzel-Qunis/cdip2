@@ -1,5 +1,5 @@
 import numpy as np
-from pyspark.sql.types import IntegerType, FloatType, StringType, DoubleType
+from pyspark.sql.types import DoubleType, FloatType, IntegerType, StringType
 
 COLUMN_DEFINITIONS = {
     "Bisnode": {

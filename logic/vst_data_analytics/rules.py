@@ -1,7 +1,6 @@
-import requests
-
 import numpy as np
 import pandas as pd
+import requests
 
 
 def AUR02_DnB(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
@@ -677,7 +676,7 @@ def address_master(
     print("Info: VT Address Master: completed.")
     return pd.concat(responses)
 
-def create_hauptbranche_id(df: pd.DataFrame) -> pd.DataFrame:
-        df["Hauptbranche_id"] = df.Hauptbranche.str[:2]
-        return df
 
+def create_hauptbranche_id(df: pd.DataFrame) -> pd.DataFrame:
+    df["Hauptbranche_id"] = df.Hauptbranche.str[:2]
+    return df

@@ -1,7 +1,7 @@
 from functools import reduce
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def rename_columns(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:

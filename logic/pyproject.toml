@@ -9,6 +9,8 @@ readme = "README.md"
 python = ">=3.10,<3.13"
 pyspark = "^3.5.0"
 pandas = "^2.1.2"
+dask = {version = "^2023.10.1", extras = ["complete"]}
+adlfs = "^2023.10.0"
 
 
 [tool.poetry.group.dev.dependencies]

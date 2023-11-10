@@ -11,7 +11,7 @@ def replace_nan(df: pd.DataFrame) -> pd.DataFrame:
     return df.replace("None", np.NaN).replace("nan", np.NaN)
 
 
-def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
+def index_data(df: dd.DataFrame, name) -> dd.DataFrame:
     if df is None or name is None:
         return df
 
@@ -24,7 +24,7 @@ def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
     if f"{name}_index" == _idx_name:
         return df
 
-    _model_data: pd.DataFrame = None
+    _model_data: dd.DataFrame = None
     if _idx_name is not None:
         _drop = _idx_name in df.columns or _idx_name_copy in df.columns
         _model_data = df.reset_index(drop=_drop)
@@ -32,8 +32,8 @@ def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
         _model_data = df
     if _idx_name_copy not in _model_data.columns:
         _model_data[_idx_name_copy] = _model_data[name]
-    _model_data = _model_data.set_index(_idx_name_copy, verify_integrity=True)
-
+    _model_data = _model_data.set_index(_idx_name_copy)
+ # TC: verify_integrity=True not available in dask
     return _model_data
 
 

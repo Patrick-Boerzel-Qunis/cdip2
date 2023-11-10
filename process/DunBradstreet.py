@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC %pip install pandas==2.1.2
+#%pip install pandas==2.1.2
 
 # COMMAND ----------
 
@@ -31,22 +31,13 @@ version = "00"
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC # Dask storage account  
+
+# COMMAND ----------
+
 account_name = "cdip0dev0std"
 account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
-
-# COMMAND ----------
-
-test_path = f"az://landing/data/01_bisnode_2023_7_V.{version}_*.parquet"
-
-# COMMAND ----------
-
-df_test = read_data(
-    path=test_path,
-    column_definitions=COLUMN_DEFINITIONS["Bisnode"],
-    account_name=account_name,
-    account_key=account_key,
-)
-df_test.head(20)
 
 # COMMAND ----------
 
@@ -55,22 +46,17 @@ df_test.head(20)
 
 # COMMAND ----------
 
-bisnode_path =  f"abfss://landing@cdip0dev0std.dfs.core.windows.net/data/01_bisnode_2023_7_V.{version}_0.parquet"
+bisnode_path = f"az://landing/data/01_bisnode_2023_7_V.{version}_*.parquet"
 
 # COMMAND ----------
 
-# df_bisnode = read_data(spark, f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/01_bisnode_2023_7_V.{version}_*.parquet", COLUMN_DEFINITIONS["Bisnode"])
 df_bisnode = read_data(
-    spark,
-    bisnode_path,
-    COLUMN_DEFINITIONS["Bisnode"],
+    path=bisnode_path,
+    column_definitions=COLUMN_DEFINITIONS["Bisnode"],
+    account_name=account_name,
+    account_key=account_key,
 )
-df_bisnode
-
-# COMMAND ----------
-
-df_bisnode = index_data(df_bisnode, "DUNS_Nummer")
-df_bisnode
+df_bisnode.head(20)
 
 # COMMAND ----------
 
@@ -79,13 +65,17 @@ df_bisnode
 
 # COMMAND ----------
 
-# df_bisnode_primus = read_data(spark, f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/02_bisnode_primus_2023_7_V.{version}_*.parquet", COLUMN_DEFINITIONS["BisnodePrimus"])
+bisnode_primus_path = f"az://landing/data/02_bisnode_primus_2023_7_V.{version}_*.parquet"
+
+# COMMAND ----------
+
 df_bisnode_primus = read_data(
-    spark,
-    f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/02_bisnode_primus_2023_7_V.{version}_5.parquet",
-    COLUMN_DEFINITIONS["BisnodePrimus"],
+    path=bisnode_primus_path,
+    column_definitions=COLUMN_DEFINITIONS["BisnodePrimus"],
+    account_name=account_name,
+    account_key=account_key,
 )
-df_bisnode_primus
+df_bisnode_primus.head(20)
 
 # COMMAND ----------
 

@@ -7,7 +7,7 @@ def rename_columns(df: dd.DataFrame, mapping: dict[str, str]) -> dd.DataFrame:
     return df.rename(columns=mapping)
 
 
-def replace_nan(df: pd.DataFrame) -> pd.DataFrame:
+def replace_nan(df: dd.DataFrame) -> dd.DataFrame:
     return df.replace("None", np.NaN).replace("nan", np.NaN)
 
 

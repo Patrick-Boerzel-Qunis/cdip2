@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 import requests
+import dask.dataframe as dd
 
 
-def AUR02_DnB(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
+
+def AUR02_DnB(df: dd.DataFrame, mapping: dict[str, str]) -> dd.DataFrame:
     return df.assign(
         Titel_1=lambda x: x.Titel_1.map(mapping),
         Titel_2=lambda x: x.Titel_2.map(mapping),
@@ -15,7 +17,7 @@ def AUR02_BeD(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
     return df.assign(Titel=lambda x: x.Titel.map(mapping))
 
 
-def AUR03_DnB(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
+def AUR03_DnB(df: dd.DataFrame, mapping: dict[str, str]) -> dd.DataFrame:
     return df.assign(
         Geschlecht_Text_1=lambda x: x.Geschlecht_Text_1.map(mapping),
         Geschlecht_Text_2=lambda x: x.Geschlecht_Text_2.map(mapping),

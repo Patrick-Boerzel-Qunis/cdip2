@@ -38,8 +38,8 @@ def index_data(df: dd.DataFrame, name) -> dd.DataFrame:
 
 
 def join_data(
-    df: pd.DataFrame, df_other: pd.DataFrame, join_on: str = None
-) -> pd.DataFrame:
+    df: dd.DataFrame, df_other: dd.DataFrame, join_on: str = None
+) -> dd.DataFrame:
     columns = df_other.columns.difference(df.columns)
     return df.join(df_other[columns], on=join_on, lsuffix="", rsuffix="_right")
 

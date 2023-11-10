@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import sys
 
 # COMMAND ----------
@@ -32,7 +36,7 @@ version = "00"
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Dask storage account  
+# MAGIC Dask storage account  
 
 # COMMAND ----------
 
@@ -80,7 +84,7 @@ df_bisnode_primus.head(20)
 # COMMAND ----------
 
 df_bisnode_primus = index_data(df_bisnode_primus, "DUNS_Nummer")
-df_bisnode_primus
+df_bisnode_primus.head(20)
 
 # COMMAND ----------
 
@@ -90,7 +94,7 @@ df_bisnode_primus
 # COMMAND ----------
 
 df = join_data(df_bisnode, df_bisnode_primus)
-df
+df.head(20)
 
 # COMMAND ----------
 
@@ -101,7 +105,7 @@ df
 # COMMAND ----------
 
 df = replace_nan(df)
-df
+df.head(20)
 
 # COMMAND ----------
 

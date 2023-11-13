@@ -1,8 +1,4 @@
 # Databricks notebook source
-#%pip install pandas==2.1.2
-
-# COMMAND ----------
-
 # dbutils.library.restartPython()
 
 # COMMAND ----------

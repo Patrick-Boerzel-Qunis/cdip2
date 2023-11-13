@@ -40,11 +40,21 @@ def get_old_columns(column_definitions: dict[str, dict[str, str]]) -> list[str]:
     return list(column_definitions.keys())
 
 
-def get_column_types(column_definitions: dict[str, dict[str, str]]) -> dict[str, str]:
+def get_column_types(
+    column_definitions: dict[str, dict[str, str]], type_key: str = "type"
+) -> dict[str, str]:
     return {
-        column_name: column_definition["type"]
+        column_name: column_definition[type_key]
         for column_name, column_definition in column_definitions.items()
     }
+
+
+def get_column_spark_types(
+    column_definitions: dict[str, dict[str, str]]
+) -> dict[str, str]:
+    return get_column_types(
+        column_definitions=column_definitions, type_key="spark_type"
+    )
 
 
 def get_column_mapping(column_definitions: dict[str, dict[str, str]]):

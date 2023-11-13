@@ -33,7 +33,7 @@ def index_data(df: dd.DataFrame, name) -> dd.DataFrame:
     if _idx_name_copy not in _model_data.columns:
         _model_data[_idx_name_copy] = _model_data[name]
     _model_data = _model_data.set_index(_idx_name_copy)
- # TC: verify_integrity=True not available in dask
+    # TC: verify_integrity=True not available in dask
     return _model_data
 
 

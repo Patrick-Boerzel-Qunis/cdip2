@@ -1,8 +1,7 @@
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 import requests
-import dask.dataframe as dd
-
 
 
 def AUR02_DnB(df: dd.DataFrame, mapping: dict[str, str]) -> dd.DataFrame:

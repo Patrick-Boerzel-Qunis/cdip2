@@ -44,11 +44,11 @@ def join_data(
 
 
 def merge_data(
-    df_left: pd.DataFrame, df_right: pd.DataFrame, merge_on: str = None
-) -> pd.DataFrame:
+    df_left: dd.DataFrame, df_right: dd.DataFrame, merge_on: str = None
+) -> dd.DataFrame:
     _index_name: str = df_left.index.name
     _index_name_no_copy: str = _index_name
-    _result: pd.DataFrame = None
+    _result: dd.DataFrame = None
 
     if _index_name is None:
         _result = (

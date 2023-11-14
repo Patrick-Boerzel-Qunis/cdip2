@@ -43,11 +43,8 @@ def AUR11(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def AUR12(df: dd.DataFrame) -> dd.DataFrame:
-    return df.assign(
-        Name=lambda x: np.where(
-            x["Prefix_Name"].isna(), x["Name"], x["Prefix_Name"] + " " + x["Name"]
-        )
-    )
+    with_prefix = df["Prefix_Name"].fillna("") + " " + df["Name"]
+    return df.assign(Name=with_prefix.where(df["Prefix_Name"].isna(), with_prefix))
 
 
 def AUR16(df: dd.DataFrame) -> dd.DataFrame:
@@ -79,12 +76,10 @@ def AUR104(df: dd.DataFrame) -> dd.DataFrame:
         ]
     )
 
-
 def AUR110(df: dd.DataFrame) -> dd.DataFrame:
     return df.assign(
-        HNR=lambda x: np.where(x.HNR.isna(), x.Direkte_Mutter_Nummer, x.HNR),
+        HNR=lambda x: x['HNR'].fillna(x['Direkte_Mutter_Nummer'])
     )
-
 
 def AUR04(df: dd.DataFrame) -> dd.DataFrame:
     df["Telefon_complete"] = (

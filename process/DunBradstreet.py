@@ -1,9 +1,6 @@
 # Databricks notebook source
-# dbutils.library.restartPython()
-
-# COMMAND ----------
-
 import sys
+import dask
 import dask.dataframe as dd
 
 # COMMAND ----------
@@ -28,6 +25,11 @@ from vst_data_analytics.rules import AUR02_DnB, AUR03_DnB
 
 # COMMAND ----------
 
+dask.config.set({"dataframe.convert-string": True})
+spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+
+# COMMAND ----------
+
 version = "00"
 
 # COMMAND ----------
@@ -42,6 +44,10 @@ account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
+target_table = "`vtl-dev`.bronze.t_dnb"
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC # Bisnode
 
@@ -51,17 +57,13 @@ bisnode_path = f"az://landing/data/01_bisnode_2023_7_V.{version}_*.parquet"
 
 # COMMAND ----------
 
-df_bisnode = read_data(
+df_bisnode: dd.DataFrame = read_data(
     path=bisnode_path,
     column_definitions=COLUMN_DEFINITIONS["Bisnode"],
     account_name=account_name,
     account_key=account_key,
+    engine="pyarrow",
 )
-df_bisnode.head(20)
-
-# COMMAND ----------
-
-df_bisnode.sort_values("DUNS_Nummer")
 
 # COMMAND ----------
 
@@ -79,17 +81,8 @@ df_bisnode_primus = read_data(
     column_definitions=COLUMN_DEFINITIONS["BisnodePrimus"],
     account_name=account_name,
     account_key=account_key,
+    engine="pyarrow",
 )
-df_bisnode_primus.head(20)
-
-# COMMAND ----------
-
-df_bisnode_primus.sort_values("DUNS_Nummer")
-
-# COMMAND ----------
-
-df_bisnode_primus = index_data(df_bisnode_primus, "DUNS_Nummer")
-df_bisnode_primus.head(20)
 
 # COMMAND ----------
 
@@ -99,7 +92,6 @@ df_bisnode_primus.head(20)
 # COMMAND ----------
 
 df = join_data(df_bisnode, df_bisnode_primus)
-df.head(20)
 
 # COMMAND ----------
 
@@ -109,19 +101,13 @@ df.head(20)
 
 # COMMAND ----------
 
-df = replace_nan(df)
-df.head(20)
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC
 # MAGIC Akademische Titel standardisieren
 
 # COMMAND ----------
 
-# df = AUR02_DnB(df, MAP_TITLE)
-# df
+df = AUR02_DnB(df, MAP_TITLE)
 
 # COMMAND ----------
 
@@ -131,8 +117,7 @@ df.head(20)
 
 # COMMAND ----------
 
-# df = AUR03_DnB(df, MAP_GENDER)
-# df
+df = AUR03_DnB(df, MAP_GENDER)
 
 # COMMAND ----------
 
@@ -148,8 +133,12 @@ df.head(20)
 
 # COMMAND ----------
 
+tmp_table = "DnB_temp"
+
+# COMMAND ----------
+
 dd.to_parquet(df=df,
-              path='az://landing/temp/',
+              path=f"az://landing/{tmp_table}/",
               write_index=False,
               overwrite = True,
               storage_options={'account_name': account_name,
@@ -158,97 +147,12 @@ dd.to_parquet(df=df,
 
 # COMMAND ----------
 
-col_types = {
-    **get_column_types(COLUMN_DEFINITIONS["Bisnode"]),
-    **get_column_types(COLUMN_DEFINITIONS["BisnodePrimus"]),
-}
-col_mappings = {
-    **get_column_mapping(COLUMN_DEFINITIONS["Bisnode"]),
-    **get_column_mapping(COLUMN_DEFINITIONS["BisnodePrimus"]),
-}
-col_types = {
-    col_mappings[col_name]: col_type for col_name, col_type in col_types.items()
-}
-cast_types(spark.createDataFrame(df), col_types).write.mode("overwrite").option(
-    "overwriteSchema", "True"
-).saveAsTable("`vtl-dev`.bronze.t_dnb")
-#TC: catalog vtl-dev variablisieren
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC TC-TEST
-# MAGIC
-# MAGIC 1. Versuchen dtypes from Dask laden. Implikationen Pandas Functions?
-# MAGIC 2. Versuchen DnB und Bed Strecke mit Pyspark laden
-# MAGIC
-# MAGIC
-# MAGIC
-# MAGIC
+spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(target_table)
 
 # COMMAND ----------
 
-df.head(20)
-
-# COMMAND ----------
-
-import pyspark.pandas as ps
-from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, LongType, StringType, DoubleType
-
-# COMMAND ----------
-
-from vst_data_analytics.mappings2 import (
-    COLUMN_DEFINITIONS2
-)
-
-# COMMAND ----------
-
-def get_column_types2(column_definitions: dict[str, dict[str, str]]) -> dict[str, str]:
-    return {
-        column_name: column_definition["spark_type"]
-        for column_name, column_definition in column_definitions.items()
-    }
-
-# COMMAND ----------
-
-def get_column_mapping2(column_definitions: dict[str, dict[str, str]]):
-    return {
-        old_column_name: column_definition["name"]
-        for old_column_name, column_definition in column_definitions.items()
-    }
-
-
-# COMMAND ----------
-
-df.info(verbose=True)
-
-# COMMAND ----------
-
-col_types = {
-    **get_column_types2(COLUMN_DEFINITIONS2["Bisnode2"]),
-    **get_column_types2(COLUMN_DEFINITIONS2["BisnodePrimus2"]),
-}
-col_mappings = {
-    **get_column_mapping2(COLUMN_DEFINITIONS2["Bisnode2"]),
-    **get_column_mapping2(COLUMN_DEFINITIONS2["BisnodePrimus2"]),
-}
-col_types = {
-    col_mappings[col_name]: col_type for col_name, col_type in col_types.items()
-}
-col_types
-
-# COMMAND ----------
-
-fields = [StructField(field, eval(spark_type)(), True) for field, spark_type in col_types.items()]
-schema = StructType(fields)
-
-sdf = spark.createDataFrame(df, schema=schema)
-
-# COMMAND ----------
-
-df_bisnode_primus.info()
-
-# COMMAND ----------
-
-
+dbutils.fs.rm(tmp_abfss_path, recurse=True)

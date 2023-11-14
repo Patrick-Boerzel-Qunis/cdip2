@@ -8,19 +8,19 @@ COLUMN_DEFINITIONS = {
         },
         "STATUS": {
             "name": "Status",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "FIRMENNAME": {
             "name": "Firmenname",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "FIRMENTYP_LANGTEXT": {
             "name": "Firmentype",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "HANDELSNAME": {
             "name": "Handelsname",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "DNB_D_U_N_S_NUMMER": {
             "name": "DUNS_Nummer",
@@ -28,23 +28,23 @@ COLUMN_DEFINITIONS = {
         },
         "PLZ_STRASSE": {
             "name": "PLZ",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "ORT_STRASSE": {
             "name": "Ort",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "STRASSE": {
             "name": "Strasse",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "HAUSNUMMER": {
             "name": "Hausnummer",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BUNDESLAND": {
             "name": "Bundesland",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "GKZ": {
             "name": "GKZ",
@@ -52,11 +52,11 @@ COLUMN_DEFINITIONS = {
         },
         "VORWAHL_TELEFON": {
             "name": "Vorwahl_Telefon",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "TELEFON": {
             "name": "Telefon",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "UMSATZ": {
             "name": "Umsatz",
@@ -72,23 +72,23 @@ COLUMN_DEFINITIONS = {
         },
         "MARKETABLE": {
             "name": "Marketable",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "HAUPTBRANCHE_08": {
             "name": "Hauptbranche",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "HAUPTBRANCHENTEXT_08": {
             "name": "Hauptbranchentext",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "NEBENBRANCHE_08": {
             "name": "Nebenbranche",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "ANZAHL_NIEDERLASSUNGEN": {
             "name": "Anzahl_Niederlassungen",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "ANZAHL_KONZERNMITGLIEDER": {
             "name": "Anzahl_Konzernmitglieder",
@@ -104,7 +104,7 @@ COLUMN_DEFINITIONS = {
         },
         "DIREKTE_MUTTER_LAND": {
             "name": "Direkte_Mutter_Land",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "HoechsteMutterNummer_0": {
             "name": "HNR",
@@ -112,15 +112,15 @@ COLUMN_DEFINITIONS = {
         },
         "RECHTSFORM_TEXT": {
             "name": "Rechtsform",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "EHEMALIGER_FIRMENNAME": {
             "name": "Ehemaliger_Firmenname",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "HANDELSREGISTER": {
             "name": "Register",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
     },
     "BisnodePrimus": {
@@ -130,75 +130,75 @@ COLUMN_DEFINITIONS = {
         },
         "GESCHLECHT_TEXT_1": {
             "name": "Geschlecht_Text_1",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "GESCHLECHT_TEXT_2": {
             "name": "Geschlecht_Text_2",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "GESCHLECHT_TEXT_3": {
             "name": "Geschlecht_Text_3",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "TITEL_1": {
             "name": "Titel_1",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "TITEL_2": {
             "name": "Titel_2",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "TITEL_3": {
             "name": "Titel_3",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "NAME_1": {
             "name": "Name_1",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "NAME_2": {
             "name": "Name_2",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "NAME_3": {
             "name": "Name_3",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "VORNAME_1": {
             "name": "Vorname_1",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "VORNAME_2": {
             "name": "Vorname_2",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "VORNAME_3": {
             "name": "Vorname_3",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "POSITION_TEXT_1": {
             "name": "Position_Text_1",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "POSITION_TEXT_2": {
             "name": "Position_Text_2",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "POSITION_TEXT_3": {
             "name": "Position_Text_3",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "INTERNET_ADRESSE": {
             "name": "Website",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "EMAIL": {
             "name": "Email",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "FIRMENZENTRALE_AUSLAND": {
             "name": "Firmenzentrale_Ausland",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
     },
     "BeDirect": {
@@ -208,107 +208,107 @@ COLUMN_DEFINITIONS = {
         },
         "BE_FIRMENNAME_GESAMT": {
             "name": "Firmenname",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_PLZ": {
             "name": "PLZ",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_ORT": {
             "name": "Ort",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_STRASSE": {
             "name": "Strasse",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_HAUSNUMMER": {
             "name": "Hausnummer",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_VORWAHL": {
             "name": "Vorwahl_Telefon",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_RUFNUMMER": {
             "name": "Telefon",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_E_MAIL": {
             "name": "Email",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_HOMEPAGE": {
             "name": "Website",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_PRIMAERBRANCHE": {
             "name": "Hauptbranche",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_BRANCHE2": {
             "name": "Nebenbranche_1",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_BRANCHE3": {
             "name": "Nebenbranche_2",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_BRANCHE4": {
             "name": "Nebenbranche_3",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_BRANCHE5": {
             "name": "Nebenbranche_4",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_MITARBEITERSTAFFEL": {
             "name": "Beschaeftigte_Code",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_ANZAHL_NL_FILIALEN": {
             "name": "Anzahl_Niederlassungen",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "HR_TYP": {
             "name": "Register_Type",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "HR_NUMMER": {
             "name": "Register_Nummer",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_UMSATZSTAFFEL": {
             "name": "Umsatz_Code",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "TELEFON_SELECT": {
             "name": "Tel_Select",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "FLAG_QUALITAET_ORG": {
             "name": "Flag_Quality",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_ANREDE": {
             "name": "Geschlecht_Text",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_TITEL": {
             "name": "Titel",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_VORNAME": {
             "name": "Vorname",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_NACHNAME": {
             "name": "Name",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BE_PREFIX": {
             "name": "Prefix_Name",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BIPID_DIREKTE_MUTTER": {
             "name": "Direkte_Mutter_Nummer",
@@ -320,51 +320,51 @@ COLUMN_DEFINITIONS = {
         },
         "BE_RECHTSFORM_ID": {
             "name": "Rechtsform",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
     },
     "MapPlzBundesland": {
         "PLZ": {
             "name": "PLZ",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BUNDESLAND": {
             "name": "Bundesland",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
     },
     "MapBedBranche": {
         "BRANCHE": {
             "name": "Hauptbranche",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BRANCHENTEXT": {
             "name": "Hauptbranchentext",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
     },
     "BisnodeForBeD": {
         "FIRMENNUMMER": {
             "name": "BisnodeID",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "DNB_D_U_N_S_NUMMER": {
             "name": "DUNS_Nummer",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "BESCHAEFTIGTE": {
             "name": "Beschaeftigte",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "UMSATZ": {
             "name": "Umsatz",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
     },
     "Industriescore": {
         "WZ8_H5_CODE": {
             "name": "Hauptbranche",
-            "type": "object",
+            "type": "string[pyarrow]",
         },
         "INDUSTRY_SCORE": {
             "name": "Industry_Score",

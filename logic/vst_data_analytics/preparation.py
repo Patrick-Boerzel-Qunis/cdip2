@@ -1,9 +1,6 @@
 import dask.dataframe as dd
+import pandas as pd
 from vst_data_analytics.transformations import rename_columns
-
-
-def sanitize_none(val: str) -> str:
-    return val if val != "None" else None
 
 
 def get_columns_of_type(type_mappings: dict[str, str], data_type: str) -> list[str]:
@@ -11,10 +8,11 @@ def get_columns_of_type(type_mappings: dict[str, str], data_type: str) -> list[s
 
 
 def cast_types(df: dd.DataFrame, type_mappings: dict[str, str]) -> dd.DataFrame:
-    int_columns = get_columns_of_type(type_mappings, "Int64")
-    float_columns = get_columns_of_type(type_mappings, "Float64")
-    number_columns = [*int_columns, *float_columns]
-    df[number_columns] = df[number_columns].map(sanitize_none)
+    # int_columns = get_columns_of_type(type_mappings, "Int64")
+    # float_columns = get_columns_of_type(type_mappings, "Float64")
+    # number_columns = [*int_columns, *float_columns]
+    # df[number_columns] = df[number_columns].replace("None", pd.NA)
+    df = df.replace("None", pd.NA)
     return df.astype(type_mappings)
 
 
@@ -23,9 +21,10 @@ def read_data(
     column_definitions: dict[str, dict[str, str]],
     account_name: str,
     account_key: str,
+    engine: str="auto"
 ) -> dd.DataFrame:
     storage_options = {"account_name": account_name, "account_key": account_key}
-    df = dd.read_parquet(path, storage_options=storage_options)
+    df = dd.read_parquet(path, storage_options=storage_options, engine=engine)
     columns = get_old_columns(column_definitions)
     df = df[columns]
     types = get_column_types(column_definitions)

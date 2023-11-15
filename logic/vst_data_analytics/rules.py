@@ -37,7 +37,6 @@ def AUR09(df: dd.DataFrame, mapping: dict[str, int]) -> dd.DataFrame:
         Beschaeftigte=lambda x: x.Beschaeftigte_Code.replace(mapping).astype(np.float32)
     )
 
-
 def AUR11(df: dd.DataFrame) -> dd.DataFrame:
     return df.assign(Handelregister=lambda x: x.Register_Type + x.Register_Nummer)
 

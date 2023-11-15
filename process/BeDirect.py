@@ -1,5 +1,5 @@
 # Databricks notebook source
- dbutils.library.restartPython()
+dbutils.library.restartPython()
 
 # COMMAND ----------
 
@@ -108,14 +108,18 @@ target_table = "`vtl-dev`.bronze.t_bed"
 df = replace_nan(df)
 df = AUR02_BeD(df, MAP_TITLE)
 df = AUR03_BeD(df, MAP_GENDER)
-df = AUR08(df, MAP_REV_MEDIAN)
-df = AUR09(df, MAP_EMPL_MEDIAN)
+# df = AUR08(df, MAP_REV_MEDIAN)
+# df = AUR09(df, MAP_EMPL_MEDIAN)
 df = AUR11(df) 
 df = AUR12(df) 
 df = AUR16(df)
 df = AUR104(df)
 df = AUR110(df) 
-# df = index_data(df, "BED_ID") #TypeError: Scalar must be NA or str
+# df = index_data(df, "BED_ID")
+
+# COMMAND ----------
+
+# df.head(2)
 
 # COMMAND ----------
 
@@ -230,6 +234,145 @@ df_bisnode: dd.DataFrame = read_data(
 # bisnode_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/01_bisnode_2023_7_V.{version}_*.parquet"
 # bisnode_path = f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/01_bisnode_2023_7_V.{version}_0.parquet"
 # df_bisnode = read_data(spark, bisnode_path, COLUMN_DEFINITIONS["BisnodeForBeD"])
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## TCTEST
+
+# COMMAND ----------
+
+# df_copy.head(2)
+# df_bisnode.head(2)
+
+# COMMAND ----------
+
+import numpy as np
+import pandas as pd
+
+def test(df_left: dd.DataFrame, df_right: dd.DataFrame) -> dd.DataFrame:
+    _index_name: str = df_left.index.name
+    _result: dd.DataFrame = None
+    if _index_name is None:
+        _result = df_left.merge(
+            get_umsatz_score(df_right), how="left", on="Umsatz_Code"
+        ).merge(get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code")
+    else:
+        _result = (
+            df_left.reset_index()
+            .merge(get_umsatz_score(df_right), how="left", on="Umsatz_Code")
+            .merge(
+                get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code"
+            )
+            .set_index(_index_name)
+        )
+
+    return _result
+
+def get_umsatz_score(df_bisnode: dd.DataFrame) -> dd.DataFrame:
+    df = (
+        df_bisnode.replace("None", pd.NA)
+        .assign(Umsatz=lambda x: x.Umsatz.astype("Float32"))
+    )
+    df["Umsatz_Score"] = df["Umsatz"].map_partitions(pd.cut, bins=[-np.inf, 10, 50, 250, 500, np.inf], labels=[1, 2, 3, 4, 5]).astype("Float32")
+    df["Umsatz_Code"] = df["Umsatz"].map_partitions(pd.cut, bins=[-np.inf, 0.1, 0.25, 0.5, 2.5, 5, 25, 50, 500, np.inf], labels=["01", "02", "03", "04", "05", "06", "07", "08", "09"])
+    g = df.groupby(["Umsatz_Code"])
+    # Ziel: In jeder Staffel den gemittelten Durchschnitt von den entsprechenden Bisnode-Werten berechnen
+    return dd.from_pandas(pd.DataFrame(
+        {"Umsatz": g.Umsatz.mean(), "Umsatz_Score": g.Umsatz_Score.mean(), "Umsatz_Code": g.Umsatz_Code.first()}
+    ), npartitions=2).set_index("Umsatz_Code")
+
+def get_beschaeftigte_score(df_bisnode: dd.DataFrame) -> dd.DataFrame:
+    df = (
+        df_bisnode.replace("None",  pd.NA)
+        .assign(Beschaeftigte=lambda x: x.Beschaeftigte.astype("Float32"))
+    )
+    df["Beschaeftigte_Score"] = df["Beschaeftigte"].map_partitions(pd.cut, bins=[-np.inf, 10, 50, 250, 999, np.inf], labels=[1, 2, 3, 4, 5]).astype("Float32")
+    df["Beschaeftigte_Code"] = df["Beschaeftigte"].map_partitions(pd.cut, bins=[0, 4, 9, 19, 49, 99, 199, 499, 999, 1999, np.inf], labels=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"])
+    g = df.groupby(["Beschaeftigte_Code"])
+    # Ziel: In jeder Staffel den gemittelten Durchschnitt von den entsprechenden Bisnode-Werten berechnen
+    return dd.from_pandas(pd.DataFrame(
+        {
+            "Beschaeftigte": g.Beschaeftigte.mean(),
+            "Beschaeftigte_Score": g.Beschaeftigte_Score.mean(),
+            "Beschaeftigte_Code": g.Beschaeftigte_Code.first(),
+        }
+    ), npartitions=2)
+
+
+
+
+# COMMAND ----------
+
+df_copy_test = test(df_copy, df_bisnode)
+df_copy_test.head(10)
+
+# COMMAND ----------
+
+df_test_bis = df_bisnode.replace("None", np.NaN).assign(Umsatz=lambda x: x.Umsatz.astype(np.float32))
+
+# COMMAND ----------
+
+bins = [-np.inf, 10, 50, 250, 500, np.inf]
+labels = [1, 2, 3, 4, 5]
+
+# df_test_bis = df_test_bis.assign(Umsatz_Score='') 
+
+def label_bins(partition):
+    partition['Umsatz_Score'] = pd.cut(partition['Umsatz'], bins=bins, labels=labels, right=False)
+    return partition[['Umsatz_Score']] 
+
+df12 = df_test_bis.map_partitions(label_bins, meta={'Umsatz_Score': 'float'})
+df12 = df12.compute()
+
+print(df12.head(100))
+
+# COMMAND ----------
+
+df_test_bis.head()
+# df12.head(100)
+
+# COMMAND ----------
+
+            Umsatz_Score=lambda x: pd.cut(
+                x.Umsatz,
+                bins=[-np.inf, 10, 50, 250, 500, np.inf],
+                labels=[1, 2, 3, 4, 5],
+            )
+
+# COMMAND ----------
+
+print(df_test_bis["Umsatz"].head(100))
+
+# COMMAND ----------
+
+def calculate_beschaeftigte_score(df: dd.DataFrame) -> dd.DataFrame:
+    bins = [-np.inf, 10, 50, 250, 999, np.inf]
+    labels = [1, 2, 3, 4, 5]
+
+    def cut_beschaeftigte(partition):
+        partition['Beschaeftigte_Score'] = pd.cut(partition['Beschaeftigte'], bins=bins, labels=labels).astype(np.float32)
+        return partition
+
+    return df.map_partitions(cut_beschaeftigte)
+
+# COMMAND ----------
+
+
+            Beschaeftigte_Score=lambda x: pd.cut(
+                x.Beschaeftigte,
+                bins=[-np.inf, 10, 50, 250, 999, np.inf],
+                labels=[1, 2, 3, 4, 5],
+            ).astype(np.float32)
+
+# COMMAND ----------
+
+df_copy = test(df_copy, df_bisnode)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## TCTEST
 
 # COMMAND ----------
 

@@ -238,7 +238,7 @@ df_bisnode: dd.DataFrame = read_data(
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## TCTEST
+# MAGIC ## TCTEST Start
 
 # COMMAND ----------
 
@@ -372,11 +372,11 @@ df_copy = test(df_copy, df_bisnode)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## TCTEST
+# MAGIC ## TCTEST End
 
 # COMMAND ----------
 
-df_copy = AAR051(df_copy, df_bisnode)
+df_copy = AAR051(df_copy, df_bisnode) #Problem Patrick B solved it
 
 # COMMAND ----------
 

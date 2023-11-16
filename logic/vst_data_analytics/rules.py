@@ -355,7 +355,7 @@ def AAR058(df: dd.DataFrame) -> dd.DataFrame:
         "Konzernmitglieder_Score",
         "Industry_Score",
     ]:
-        df[col].fillna(1, inplace=True)
+        df[col] = df[col].fillna(1)
 
     df["Gesamt_Score"] = (
         df["Umsatz_Score"] * 0.2
@@ -475,7 +475,7 @@ def _rule_konzernsegment(df: dd.DataFrame) -> dd.DataFrame:
     # Konzernsegment:
     # numerisch kleinstes Segment unter allen mit selber höchster Mutter
     df["Konzernsegment"] = df.groupby(["HNR"])["Segment"].transform("min")
-    df["Konzernsegment"].fillna(df["Segment"], inplace=True)
+    df["Konzernsegment"] = df["Konzernsegment"].fillna(df["Segment"])
     # Beschaeftigte_Konzern:
     # Summe der Mitarbeiter unter einer höchsten Nummer
     df["Beschaeftigte_Konzern"] = df.groupby(["HNR"])["Beschaeftigte"].transform("sum")

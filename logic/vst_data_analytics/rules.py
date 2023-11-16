@@ -325,19 +325,23 @@ def AAR055(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def AAR056(df: dd.DataFrame) -> dd.DataFrame:
-    return df.assign(
-        Anzahl_Konzernmitglieder=lambda x: x.groupby(["HNR"])["HNR"]
-        .transform("count")
-        .astype("Float32")
+    value_counts = (
+        df.groupby("HNR")
+        .size()
+        .reset_index()
+        .rename(columns={0: "Anzahl_Konzernmitglieder"})
     )
+    return df.merge(value_counts, on="HNR", how="left")
 
 
 def AAR057(df: dd.DataFrame) -> dd.DataFrame:
-    df["Konzernmitglieder_Score"] = pd.cut(
-        df.Anzahl_Konzernmitglieder,
-        bins=[0, 4, 50, 100, 200, np.inf],
-        labels=[1, 2, 3, 4, 5],
-    ).astype(np.float32)
+    df["Konzernmitglieder_Score"] = (
+        df["Anzahl_Konzernmitglieder"]
+        .map_partitions(
+            pd.cut, bins=[0, 4, 50, 100, 200, np.inf], labels=[1, 2, 3, 4, 5]
+        )
+        .astype("Float32")
+    )
 
     return df
 
@@ -366,11 +370,11 @@ def AAR058(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def _add_segment_data(df: dd.DataFrame) -> dd.DataFrame:
-    df["Segment"] = pd.cut(
-        df.Gesamt_Score,
-        bins=[0, 2, 3.5, 5],
-        labels=[3, 2, 1],
-    ).astype(np.float32)
+    df["Segment"] = (
+        df["Gesamt_Score"]
+        .map_partitions(pd.cut, bins=[0, 2, 3.5, 5], labels=[3, 2, 1])
+        .astype("Float32")
+    )
 
     return df
 

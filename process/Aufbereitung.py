@@ -1,14 +1,12 @@
 # Databricks notebook source
 import sys
+import pandas as pd
+import numpy as np
+from datetime import datetime
 
 # COMMAND ----------
 
-user_id = spark.sql('select current_user() as user').collect()[0]['user']
-user_id
-
-# COMMAND ----------
-
-sys.path.append(f"/Workspace/Repos/{user_id}/cdip-interim/logic")
+sys.path.append(f"../logic")
 
 # COMMAND ----------
 
@@ -27,12 +25,6 @@ from vst_data_analytics.rules import (
     AUR109,
     AUR111,
 )
-
-# COMMAND ----------
-
-import pandas as pd
-import numpy as np
-from datetime import datetime
 
 # COMMAND ----------
 
@@ -60,8 +52,16 @@ BED_UNIFIED_COLUMNS = {
 
 # COMMAND ----------
 
-df_dnb = spark.read.table("`vtl-dev`.landing.t_dnb").toPandas()
-df_bed = spark.read.table("`vtl-dev`.landing.t_bed").toPandas()
+#df_dnb = spark.read.table("`vtl-dev`.bronze.t_dnb").toPandas()
+df_bed = spark.read.table("`vtl-dev`.bronze.t_bed").toPandas()
+
+# COMMAND ----------
+
+df_bed.shape
+
+# COMMAND ----------
+
+df_dnb = spark.read.table("`vtl-dev`.bronze.t_dnb").toPandas()
 
 # COMMAND ----------
 

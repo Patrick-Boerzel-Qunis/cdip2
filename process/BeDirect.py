@@ -1,5 +1,5 @@
 # Databricks notebook source
-dbutils.library.restartPython()
+# dbutils.library.restartPython()
 
 # COMMAND ----------
 
@@ -266,10 +266,6 @@ df_copy = AAR059(df_copy)
 
 # COMMAND ----------
 
-df_copy.head(10)
-
-# COMMAND ----------
-
 df_copy = df_copy[["BED_ID","Segment"]]
 
 # COMMAND ----------
@@ -287,12 +283,7 @@ df = merge_data(df, df_copy, merge_on="BED_ID")
 
 # COMMAND ----------
 
-#df = df.reset_index()
-df.compute()
-
-# COMMAND ----------
-
-df.head(20)
+# df.compute()
 
 # COMMAND ----------
 

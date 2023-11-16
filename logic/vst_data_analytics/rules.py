@@ -381,18 +381,16 @@ def _add_segment_data(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def _rule_segment_anzahl_konzernmitglieder(df: dd.DataFrame) -> dd.DataFrame:
-    df.loc[
-        (df["Segment"] == 3) & (df["Anzahl_Konzernmitglieder"] > 1),
-        "Segment",
-    ] = 2
+    df["Segment"] = df["Segment"].mask(
+        (df["Segment"] == 3) & (df["Anzahl_Konzernmitglieder"] > 1), 2
+    )
     return df
 
 
 def _rule_segment_anzahl_niederlassungen(df: dd.DataFrame) -> dd.DataFrame:
-    df.loc[
-        (df["Segment"] == 3) & (df["Anzahl_Niederlassungen"] > 1),
-        "Segment",
-    ] = 2
+    df["Segment"] = df["Segment"].mask(
+        (df["Segment"] == 3) & (df["Anzahl_Niederlassungen"] > 1), 2
+    )
     return df
 
 
@@ -423,16 +421,16 @@ def _rule_firmenname(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def _rule_umsatz_code(df: dd.DataFrame) -> dd.DataFrame:
-    df.loc[df["Umsatz_Code"].astype(np.float32) >= 9, "Segment"] = 1
+    df["Segment"] = df["Segment"].mask(df["Umsatz_Code"].astype(np.float32) >= 9, 1)
     return df
 
 
 def _rule_umsatz_beschaeftigte_code(df: dd.DataFrame) -> dd.DataFrame:
-    df.loc[
+    df["Segment"] = df["Segment"].mask(
         (df["Umsatz_Code"].astype(np.float32) >= 3)
         & (df["Beschaeftigte_Code"].astype(np.float32) >= 9),
-        "Segment",
-    ] = 1
+        1,
+    )
     return df
 
 
@@ -442,67 +440,70 @@ def _rule_umsatz_branche(df: dd.DataFrame) -> dd.DataFrame:
     # und es gibt nur folgende Branchen:
     # 6209: Erbringung von sonstigen Dienstleistungen der Informationstechnologie
     # 6203: Betrieb von Datenverarbeitungseinrichtungen für Dritte
-    df.loc[
+    df["Segment"] = df["Segment"].mask(
         (df["Umsatz_Code"].astype(np.float32) >= 6)
         & ((df["Hauptbranche"] == 6209) | (df["Hauptbranche"] == 6203)),
-        "Segment",
-    ] = 1
+        1,
+    )
     return df
 
 
 def _rule_anzahl_niederlassungen(df: dd.DataFrame) -> dd.DataFrame:
-    df.loc[df["Anzahl_Niederlassungen"] > 50, "Segment"] = 1
+    df["Segment"] = df["Segment"].mask(df["Anzahl_Niederlassungen"] > 50, 1)
     return df
 
 
 def _rule_rechtsform(df: dd.DataFrame) -> dd.DataFrame:
-    df.loc[
+    df["Segment"] = df["Segment"].mask(
         (df["Rechtsform"] == "KGaA")
         | (df["Rechtsform"] == "SE")
         | (df["Rechtsform"] == "AG")
         | (df["Rechtsform"] == "AG & Co. oHG")
         | (df["Rechtsform"] == "AG & Co. KG"),
-        "Segment",
-    ] = 1
+        1,
+    )
     return df
 
 
 def _rule_anzahl_konzernmitglieder(df: dd.DataFrame) -> dd.DataFrame:
-    df.loc[df["Anzahl_Konzernmitglieder"] > 50, "Segment"] = 1
+    df["Segment"] = df["Segment"].mask(df["Anzahl_Konzernmitglieder"] > 50, 1)
     return df
 
 
 def _rule_konzernsegment(df: dd.DataFrame) -> dd.DataFrame:
     # Konzernsegment:
     # numerisch kleinstes Segment unter allen mit selber höchster Mutter
-    df["Konzernsegment"] = df.groupby(["HNR"])["Segment"].transform("min")
-    df["Konzernsegment"] = df["Konzernsegment"].fillna(df["Segment"])
     # Beschaeftigte_Konzern:
     # Summe der Mitarbeiter unter einer höchsten Nummer
+    df = df.set_index("Segment", sorted=True)
+    df["Konzernsegment"] = df.groupby(["HNR"])["Segment"].transform("min")
     df["Beschaeftigte_Konzern"] = df.groupby(["HNR"])["Beschaeftigte"].transform("sum")
+    df = df.reset_index()
+    df["Konzernsegment"] = df["Konzernsegment"].fillna(df["Segment"])
 
-    df.loc[(df["Segment"] >= 2) & (df["Konzernsegment"] == 1), "Segment"] = 1
-
-    df.loc[
+    df["Segment"] = df["Segment"].mask(
+        (df["Segment"] >= 2) & (df["Konzernsegment"] == 1), 1
+    )
+    df["Segment"] = df["Segment"].mask(
         (df["Segment"] == 2)
         & (df["Konzernsegment"] == 2)
         & (df["Beschaeftigte_Konzern"] <= 50),
-        "Segment",
-    ] = 3
+        3,
+    )
 
-    df.loc[
+    df["Segment"] = df["Segment"].mask(
         (df["Segment"] == 3)
         & ((df["Konzernsegment"] == 2) | (df["Konzernsegment"] == 3))
         & (df["Beschaeftigte_Konzern"] > 50),
-        "Segment",
-    ] = 2
+        2,
+    )
 
-    df.loc[
+    df["Segment"] = df["Segment"].mask(
         (df["Segment"] == 2)
         & (df["Konzernsegment"] == 3)
         & (df["Beschaeftigte_Konzern"] <= 50),
-        "Segment",
-    ] = 3
+        3,
+    )
 
     return df
 

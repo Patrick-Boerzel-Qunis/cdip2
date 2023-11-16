@@ -301,7 +301,7 @@ df.head(20)
 
 # COMMAND ----------
 
-spark.createDataFrame(df).write.mode("overwrite").saveAsTable("`vtl-dev`.bronze.t_bed")
+#spark.createDataFrame(df).write.mode("overwrite").saveAsTable("`vtl-dev`.bronze.t_bed")
 
 # COMMAND ----------
 
@@ -311,3 +311,25 @@ spark.createDataFrame(df).write.mode("overwrite").saveAsTable("`vtl-dev`.bronze.
 # to_spark_df = dask.delayed(spark.createDataFrame)
 # pieces = dask.compute(*[to_spark_df(d) for d in ddf.to_delayed()])
 # spark_df = functoos.reduce(pyspark.sql.DataFrame.unionAll, pieces)
+
+# COMMAND ----------
+
+tmp_table = "BED_temp"
+
+dd.to_parquet(df=df,
+              path=f"az://landing/{tmp_table}/",
+              write_index=False,
+              overwrite = True,
+              storage_options={'account_name': account_name,
+                               'account_key': account_key}
+              )
+
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
+
+# COMMAND ----------
+
+spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable("`vtl-dev`.bronze.t_bed")
+
+# COMMAND ----------
+
+dbutils.fs.rm(tmp_abfss_path, recurse=True)

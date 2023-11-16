@@ -292,9 +292,22 @@ df.compute()
 
 # COMMAND ----------
 
+df.head(20)
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Write Data
 
 # COMMAND ----------
 
 spark.createDataFrame(df).write.mode("overwrite").saveAsTable("`vtl-dev`.bronze.t_bed")
+
+# COMMAND ----------
+
+# A dask dataframe is made up of lazy partitions, but you are asking spark to send them to spark workers. This is not a simple operation! You could decide to create spark dataframes for each of the dask partitions, and concatenate them on the worker side - this would likely achieve what you are after but not be at all efficient.
+
+
+# to_spark_df = dask.delayed(spark.createDataFrame)
+# pieces = dask.compute(*[to_spark_df(d) for d in ddf.to_delayed()])
+# spark_df = functoos.reduce(pyspark.sql.DataFrame.unionAll, pieces)

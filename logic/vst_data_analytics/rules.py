@@ -475,7 +475,7 @@ def _rule_konzernsegment(df: dd.DataFrame) -> dd.DataFrame:
     # numerisch kleinstes Segment unter allen mit selber höchster Mutter
     # Beschaeftigte_Konzern:
     # Summe der Mitarbeiter unter einer höchsten Nummer
-    df = df.set_index("HNR", sorted=True)
+    df = df.set_index("HNR")
     df["Konzernsegment"] = df.groupby("HNR")["Segment"].transform("min")
     df["Beschaeftigte_Konzern"] = df.groupby("HNR")["Beschaeftigte"].transform("sum")
     df = df.reset_index()

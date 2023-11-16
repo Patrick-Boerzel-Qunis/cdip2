@@ -346,19 +346,19 @@ COLUMN_DEFINITIONS = {
     "BisnodeForBeD": {
         "FIRMENNUMMER": {
             "name": "BisnodeID",
-            "type": "string[pyarrow]",
+            "type": "Int64",
         },
         "DNB_D_U_N_S_NUMMER": {
             "name": "DUNS_Nummer",
-            "type": "string[pyarrow]",
+            "type": "Int64",
         },
         "BESCHAEFTIGTE": {
             "name": "Beschaeftigte",
-            "type": "string[pyarrow]",
+            "type": "Float64",
         },
         "UMSATZ": {
             "name": "Umsatz",
-            "type": "string[pyarrow]",
+            "type": "Float64",
         },
     },
     "Industriescore": {

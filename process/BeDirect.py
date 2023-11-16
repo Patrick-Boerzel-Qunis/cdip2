@@ -109,6 +109,7 @@ df = AUR02_BeD(df, MAP_TITLE)
 df = AUR03_BeD(df, MAP_GENDER)
 df = AUR08(df, MAP_REV_MEDIAN)
 df = AUR09(df, MAP_EMPL_MEDIAN)
+df = AAR10(df, RECHTSREFORM_MAPPING)
 df = AUR11(df) 
 df = AUR12(df) 
 df = AUR16(df)
@@ -119,6 +120,12 @@ df = AUR110(df)
 # COMMAND ----------
 
 df.head(2)
+
+# COMMAND ----------
+
+column_types = df.dtypes
+print(column_types)
+
 
 # COMMAND ----------
 
@@ -178,11 +185,6 @@ df = merge_data(df, df_bed_branch)
 
 # COMMAND ----------
 
-# TODO : check if this can be moved together with other transformation.
-df = AAR10(df, RECHTSREFORM_MAPPING)
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC #### Calculate and Join BeD Segment value
 
@@ -239,6 +241,11 @@ df_copy.head(5)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC Add Industry score
+
+# COMMAND ----------
+
 industrie_path = f"az://landing/data/industriescore_2023_7_V.{version}_0.parquet"
 
 df_industrie: dd.DataFrame = read_data(
@@ -262,13 +269,20 @@ df_copy = merge_data(df_copy, df_industrie, merge_on="Hauptbranche")
 
 # COMMAND ----------
 
+column_types = df_copy.dtypes
+
+# Print the column types
+print(column_types)
+
+# COMMAND ----------
+
 df_copy = AAR053(df_copy)
-df_copy = AAR054(df_copy)
-df_copy = AAR055(df_copy)
-df_copy = AAR056(df_copy)
-df_copy = AAR057(df_copy)
-df_copy = AAR058(df_copy)
-df_copy = AAR059(df_copy)
+#df_copy = AAR054(df_copy)
+#df_copy = AAR055(df_copy)
+#df_copy = AAR056(df_copy)
+#df_copy = AAR057(df_copy)
+#df_copy = AAR058(df_copy)
+#df_copy = AAR059(df_copy)
 
 # COMMAND ----------
 

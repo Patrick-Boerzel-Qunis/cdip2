@@ -355,6 +355,7 @@ def AAR058(df: dd.DataFrame) -> dd.DataFrame:
         "Konzernmitglieder_Score",
         "Industry_Score",
     ]:
+        df[col] = df[col].astype("Float32")
         df[col] = df[col].fillna(1)
 
     df["Gesamt_Score"] = (

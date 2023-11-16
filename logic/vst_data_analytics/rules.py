@@ -295,25 +295,31 @@ def AAR051(df_bed: dd.DataFrame, df_dnb: dd.DataFrame) -> dd.DataFrame:
 
 
 def AAR053(df: dd.DataFrame) -> dd.DataFrame:
+    df = df.assign(
+        Umsatz=lambda x: x.Umsatz.astype(float),
+        Beschaeftigte=lambda x: x.Beschaeftigte.astype(float),
+    )
     return df.assign(Umsatz_pro_Mitarbeiter=lambda x: x.Umsatz / x.Beschaeftigte)
 
 
 def AAR054(df: dd.DataFrame) -> dd.DataFrame:
-    df["Umsatz_pro_Mitarbeiter_Score"] = pd.cut(
-        df.Umsatz_pro_Mitarbeiter,
-        bins=[0, 0.1, 0.2, 0.3, 0.5, np.inf],
-        labels=[1, 2, 3, 4, 5],
-    ).astype(np.float32)
+    df["Umsatz_pro_Mitarbeiter_Score"] = (
+        df["Umsatz_pro_Mitarbeiter"]
+        .map_partitions(
+            pd.cut, bins=[0, 0.1, 0.2, 0.3, 0.5, np.inf], labels=[1, 2, 3, 4, 5]
+        )
+        .astype("Float32")
+    )
 
     return df
 
 
 def AAR055(df: dd.DataFrame) -> dd.DataFrame:
-    df["Niederlassungs_Score"] = pd.cut(
-        df.Anzahl_Niederlassungen,
-        bins=[0, 1, 2, 5, 10, np.inf],
-        labels=[1, 2, 3, 4, 5],
-    ).astype(np.float32)
+    df["Niederlassungs_Score"] = (
+        df["Anzahl_Niederlassungen"]
+        .map_partitions(pd.cut, bins=[0, 1, 2, 5, 10, np.inf], labels=[1, 2, 3, 4, 5])
+        .astype("Float32")
+    )
 
     return df
 
@@ -322,7 +328,7 @@ def AAR056(df: dd.DataFrame) -> dd.DataFrame:
     return df.assign(
         Anzahl_Konzernmitglieder=lambda x: x.groupby(["HNR"])["HNR"]
         .transform("count")
-        .astype(np.float32)
+        .astype("Float32")
     )
 
 

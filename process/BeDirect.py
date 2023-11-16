@@ -119,13 +119,11 @@ df = AUR110(df)
 
 # COMMAND ----------
 
-df.head(2)
+#df.head(2)
 
 # COMMAND ----------
 
-column_types = df.dtypes
-print(column_types)
-
+#print(df.dtypes)
 
 # COMMAND ----------
 
@@ -233,11 +231,8 @@ df_bisnode: dd.DataFrame = read_data(
 
 # COMMAND ----------
 
+#TODO : why Umsatz type gets converted to string?
 df_copy = AAR051(df_copy, df_bisnode)
-
-# COMMAND ----------
-
-df_copy.head(5)
 
 # COMMAND ----------
 
@@ -269,24 +264,25 @@ df_copy = merge_data(df_copy, df_industrie, merge_on="Hauptbranche")
 
 # COMMAND ----------
 
-column_types = df_copy.dtypes
-
-# Print the column types
-print(column_types)
+df_copy = AAR053(df_copy)
+df_copy = AAR054(df_copy)
+df_copy = AAR055(df_copy)
+df_copy = AAR056(df_copy)
+df_copy = AAR057(df_copy)
+df_copy = AAR058(df_copy)
+df_copy = AAR059(df_copy)
 
 # COMMAND ----------
 
-df_copy = AAR053(df_copy)
-#df_copy = AAR054(df_copy)
-#df_copy = AAR055(df_copy)
-#df_copy = AAR056(df_copy)
-#df_copy = AAR057(df_copy)
-#df_copy = AAR058(df_copy)
-#df_copy = AAR059(df_copy)
+#df_copy.head(20)
 
 # COMMAND ----------
 
 df_copy = df_copy[["Segment"]]
+
+# COMMAND ----------
+
+#df_copy.Segment.value_counts().compute()
 
 # COMMAND ----------
 
@@ -296,6 +292,10 @@ df_copy = df_copy[["Segment"]]
 # COMMAND ----------
 
 df = join_data(df, df_copy)
+
+# COMMAND ----------
+
+#df.head(10)
 
 # COMMAND ----------
 

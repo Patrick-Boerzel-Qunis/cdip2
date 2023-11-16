@@ -395,7 +395,7 @@ def _rule_segment_anzahl_niederlassungen(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def _rule_firmenname(df: dd.DataFrame) -> dd.DataFrame:
-    df.loc[
+    df["Segment"] = df["Segment"].mask(
         df["Firmenname"].str.contains(
             "|".join(
                 [
@@ -415,8 +415,8 @@ def _rule_firmenname(df: dd.DataFrame) -> dd.DataFrame:
                 ]
             )
         ),
-        "Segment",
-    ] = 1
+        1,
+    )
     return df
 
 

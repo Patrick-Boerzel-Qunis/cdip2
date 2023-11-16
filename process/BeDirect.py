@@ -90,10 +90,6 @@ df: dd.DataFrame = read_data(
 
 # COMMAND ----------
 
-target_table = "`vtl-dev`.bronze.t_bed"
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC ## Transform
 
@@ -116,10 +112,6 @@ df = AUR16(df)
 df = AUR104(df)
 df = AUR110(df) 
 # df = index_data(df, "BED_ID")
-
-# COMMAND ----------
-
-#df.head(2)
 
 # COMMAND ----------
 
@@ -274,11 +266,15 @@ df_copy = AAR059(df_copy)
 
 # COMMAND ----------
 
-#df_copy.head(20)
+len(df_copy)
 
 # COMMAND ----------
 
-df_copy = df_copy[["Segment"]]
+df_copy.head(10)
+
+# COMMAND ----------
+
+df_copy = df_copy[["BED_ID","Segment"]]
 
 # COMMAND ----------
 
@@ -291,11 +287,16 @@ df_copy = df_copy[["Segment"]]
 
 # COMMAND ----------
 
-df = join_data(df, df_copy)
+df = merge_data(df, df_copy, merge_on="BED_ID")
 
 # COMMAND ----------
 
-#df.head(10)
+#df = df.reset_index()
+df.head(10)
+
+# COMMAND ----------
+
+len(df)
 
 # COMMAND ----------
 
@@ -306,4 +307,8 @@ df = join_data(df, df_copy)
 
 spark.createDataFrame(df).write.mode("overwrite").option(
     "overwriteSchema", "True"
-).saveAsTable("`vtl-dev`.landing.t_bed")
+).saveAsTable("`vtl-dev`.bronze.t_bed")
+
+# COMMAND ----------
+
+

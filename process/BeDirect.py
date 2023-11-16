@@ -266,10 +266,6 @@ df_copy = AAR059(df_copy)
 
 # COMMAND ----------
 
-len(df_copy)
-
-# COMMAND ----------
-
 df_copy.head(10)
 
 # COMMAND ----------
@@ -292,11 +288,7 @@ df = merge_data(df, df_copy, merge_on="BED_ID")
 # COMMAND ----------
 
 #df = df.reset_index()
-df.head(10)
-
-# COMMAND ----------
-
-len(df)
+df.compute()
 
 # COMMAND ----------
 
@@ -305,10 +297,4 @@ len(df)
 
 # COMMAND ----------
 
-spark.createDataFrame(df).write.mode("overwrite").option(
-    "overwriteSchema", "True"
-).saveAsTable("`vtl-dev`.bronze.t_bed")
-
-# COMMAND ----------
-
-
+spark.createDataFrame(df).write.mode("overwrite").saveAsTable("`vtl-dev`.bronze.t_bed")

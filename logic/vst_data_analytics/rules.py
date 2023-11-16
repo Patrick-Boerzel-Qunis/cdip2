@@ -37,6 +37,7 @@ def AUR09(df: dd.DataFrame, mapping: dict[str, int]) -> dd.DataFrame:
         Beschaeftigte=lambda x: x.Beschaeftigte_Code.replace(mapping).astype(np.float32)
     )
 
+
 def AUR11(df: dd.DataFrame) -> dd.DataFrame:
     return df.assign(Handelregister=lambda x: x.Register_Type + x.Register_Nummer)
 
@@ -75,10 +76,10 @@ def AUR104(df: dd.DataFrame) -> dd.DataFrame:
         ]
     )
 
+
 def AUR110(df: dd.DataFrame) -> dd.DataFrame:
-    return df.assign(
-        HNR=lambda x: x['HNR'].fillna(x['Direkte_Mutter_Nummer'])
-    )
+    return df.assign(HNR=lambda x: x["HNR"].fillna(x["Direkte_Mutter_Nummer"]))
+
 
 def AUR04(df: dd.DataFrame) -> dd.DataFrame:
     df["Telefon_complete"] = (
@@ -216,70 +217,77 @@ def AAR050(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def get_umsatz_score(df_bisnode: dd.DataFrame) -> dd.DataFrame:
-    df = (
-        df_bisnode.replace("None", np.NaN)
-        .assign(Umsatz=lambda x: x.Umsatz.astype(np.float32))
-        .assign(
-            Umsatz_Score=lambda x: pd.cut(
-                x.Umsatz,
-                bins=[-np.inf, 10, 50, 250, 500, np.inf],
-                labels=[1, 2, 3, 4, 5],
-            ).astype(np.float32),
-            Umsatz_Code=lambda x: pd.cut(
-                x.Umsatz,
-                bins=[-np.inf, 0.1, 0.25, 0.5, 2.5, 5, 25, 50, 500, np.inf],
-                labels=["01", "02", "03", "04", "05", "06", "07", "08", "09"],
-            ),
+    df = df_bisnode.replace("None", pd.NA).assign(
+        Umsatz=lambda x: x.Umsatz.astype("Float32")
+    )
+    df["Umsatz_Score"] = (
+        df["Umsatz"]
+        .map_partitions(
+            pd.cut, bins=[-np.inf, 10, 50, 250, 500, np.inf], labels=[1, 2, 3, 4, 5]
         )
+        .astype("Float32")
+    )
+    df["Umsatz_Code"] = df["Umsatz"].map_partitions(
+        pd.cut,
+        bins=[-np.inf, 0.1, 0.25, 0.5, 2.5, 5, 25, 50, 500, np.inf],
+        labels=["01", "02", "03", "04", "05", "06", "07", "08", "09"],
     )
     g = df.groupby(["Umsatz_Code"])
     # Ziel: In jeder Staffel den gemittelten Durchschnitt von den entsprechenden Bisnode-Werten berechnen
-    return dd.DataFrame(
-        {"Umsatz": g.Umsatz.mean(), "Umsatz_Score": g.Umsatz_Score.mean()}
-    )
+    return dd.from_pandas(
+        pd.DataFrame(
+            {
+                "Umsatz": g.Umsatz.mean(),
+                "Umsatz_Score": g.Umsatz_Score.mean(),
+                "Umsatz_Code": g.Umsatz_Code.first(),
+            }
+        ),
+        npartitions=2,
+    ).set_index("Umsatz_Code")
 
 
 def get_beschaeftigte_score(df_bisnode: dd.DataFrame) -> dd.DataFrame:
-    df = (
-        df_bisnode.replace("None", np.NaN)
-        .assign(Beschaeftigte=lambda x: x.Beschaeftigte.astype(np.float32))
-        .assign(
-            Beschaeftigte_Score=lambda x: pd.cut(
-                x.Beschaeftigte,
-                bins=[-np.inf, 10, 50, 250, 999, np.inf],
-                labels=[1, 2, 3, 4, 5],
-            ).astype(np.float32),
-            Beschaeftigte_Code=lambda x: pd.cut(
-                x.Beschaeftigte,
-                bins=[0, 4, 9, 19, 49, 99, 199, 499, 999, 1999, np.inf],
-                labels=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
-            ),
+    df = df_bisnode.replace("None", pd.NA).assign(
+        Beschaeftigte=lambda x: x.Beschaeftigte.astype("Float32")
+    )
+    df["Beschaeftigte_Score"] = (
+        df["Beschaeftigte"]
+        .map_partitions(
+            pd.cut, bins=[-np.inf, 10, 50, 250, 999, np.inf], labels=[1, 2, 3, 4, 5]
         )
+        .astype("Float32")
+    )
+    df["Beschaeftigte_Code"] = df["Beschaeftigte"].map_partitions(
+        pd.cut,
+        bins=[0, 4, 9, 19, 49, 99, 199, 499, 999, 1999, np.inf],
+        labels=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
     )
     g = df.groupby(["Beschaeftigte_Code"])
     # Ziel: In jeder Staffel den gemittelten Durchschnitt von den entsprechenden Bisnode-Werten berechnen
-    return dd.DataFrame(
-        {
-            "Beschaeftigte": g.Beschaeftigte.mean(),
-            "Beschaeftigte_Score": g.Beschaeftigte_Score.mean(),
-        }
+    return dd.from_pandas(
+        pd.DataFrame(
+            {
+                "Beschaeftigte": g.Beschaeftigte.mean(),
+                "Beschaeftigte_Score": g.Beschaeftigte_Score.mean(),
+                "Beschaeftigte_Code": g.Beschaeftigte_Code.first(),
+            }
+        ),
+        npartitions=2,
     )
 
 
-def AAR051(df_left: dd.DataFrame, df_right: dd.DataFrame) -> dd.DataFrame:
-    _index_name: str = df_left.index.name
+def AAR051(df_bed: dd.DataFrame, df_dnb: dd.DataFrame) -> dd.DataFrame:
+    _index_name: str = df_bed.index.name
     _result: dd.DataFrame = None
     if _index_name is None:
-        _result = df_left.merge(
-            get_umsatz_score(df_right), how="left", on="Umsatz_Code"
-        ).merge(get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code")
+        _result = df_bed.merge(
+            get_umsatz_score(df_dnb), how="left", on="Umsatz_Code"
+        ).merge(get_beschaeftigte_score(df_dnb), how="left", on="Beschaeftigte_Code")
     else:
         _result = (
-            df_left.reset_index()
-            .merge(get_umsatz_score(df_right), how="left", on="Umsatz_Code")
-            .merge(
-                get_beschaeftigte_score(df_right), how="left", on="Beschaeftigte_Code"
-            )
+            df_bed.reset_index()
+            .merge(get_umsatz_score(df_dnb), how="left", on="Umsatz_Code")
+            .merge(get_beschaeftigte_score(df_dnb), how="left", on="Beschaeftigte_Code")
             .set_index(_index_name)
         )
 

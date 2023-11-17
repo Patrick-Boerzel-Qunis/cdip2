@@ -1,16 +1,21 @@
 # Databricks notebook source
-#dbutils.library.restartPython()
+dbutils.library.restartPython()
 
 # COMMAND ----------
 
 import sys
 import pandas as pd
+import dask.dataframe as dd
 import numpy as np
 from datetime import datetime
 
 # COMMAND ----------
 
 sys.path.append(f"../logic")
+
+# COMMAND ----------
+
+DEBUG = True
 
 # COMMAND ----------
 
@@ -29,6 +34,17 @@ from vst_data_analytics.rules import (
     AUR109,
     AUR111,
 )
+
+# COMMAND ----------
+
+df_dnb = spark.read.table("`vtl-dev`.bronze.t_dnb").toPandas()
+df_bed = spark.read.table("`vtl-dev`.bronze.t_bed").toPandas()
+
+# COMMAND ----------
+
+if DEBUG :
+    print(df_dnb.shape)
+    print(df_bed.shape)
 
 # COMMAND ----------
 
@@ -53,11 +69,6 @@ BED_UNIFIED_COLUMNS = {
     "Flag_Quality": "BED_Flag_Quality",
     "Tel_Select": "BED_Tel_Select",
 }
-
-# COMMAND ----------
-
-df_dnb = spark.read.table("`vtl-dev`.bronze.t_dnb").toPandas()
-df_bed = spark.read.table("`vtl-dev`.bronze.t_bed").toPandas()
 
 # COMMAND ----------
 
@@ -95,7 +106,13 @@ df_bed = df_bed.assign(
 
 # COMMAND ----------
 
-df_combined = pd.concat([df_dnb, df_bed])
+df = pd.concat([df_dnb, df_bed])
+
+del df_dnb,df_bed
+
+# COMMAND ----------
+
+df.shape
 
 # COMMAND ----------
 
@@ -104,39 +121,22 @@ df_combined = pd.concat([df_dnb, df_bed])
 
 # COMMAND ----------
 
-if "BED_Flag_Quality" in df_combined.columns and "Status" in df_combined.columns:
-    df_combined = df_combined.assign(
+if "BED_Flag_Quality" in df.columns and "Status" in df.columns:
+    df_combined = df.assign(
         Master_Marketable=lambda x: ((x.Marketable == "Y") & (x.Status == "aktiv"))
         | (x.BED_Flag_Quality == "SELECT"),
     )
-#TODO : The  following is dead code if df_combined has both DnB and BED data!  
-elif "Status" in df_combined.columns:
-    df_combined = df_combined.assign(
-        Master_Marketable=lambda x: ((x.Marketable == "Y") & (x.Status == "aktiv")),
-    )
-    df_combined["BED_ID"] = np.NaN
-else:
-    df_combined = df_combined.assign(
-        Master_Marketable=lambda x: (x.BED_Flag_Quality == "SELECT"),
-    )
-    df_combined["DUNS_Nummer"] = np.NaN
 
-df_combined = df_combined.assign(
-    Attribute_Count=lambda x: x[
-        ["Firmenname", "Strasse", "Hausnummer", "PLZ", "Ort", "Telefon"]
-    ].count(axis=1),
-    Source=lambda x: np.where(x["DUNS_Nummer"].isna(), "BED", "DNB"),
-)
-if "GP_RAW_ID" not in df_combined.columns:
+if "GP_RAW_ID" not in df.columns:
     #TODO : we need the definition to be : GP_RAW_ID=lambda x: np.where(x["DUNS_Nummer"].isna(), "bed_"+x.BED_ID.astype(str), "dnb_"+x.DUNS_Nummer.astype(str)),
     df_combined = df_combined.assign(
-        GP_RAW_ID=range(0, df_combined.shape[0]), GP_RAW_ID_index=lambda x: x.GP_RAW_ID
+        GP_RAW_ID=range(0, df.shape[0]), GP_RAW_ID_index=lambda x: x.GP_RAW_ID
     ).set_index("GP_RAW_ID_index")
 
 now: str = str(datetime.now())
 # Lückenfüller für die ominöse Username Env Variable, die vorher gesetzt wurde.
 username: str = "dbx"
-if "Last_Updated_By" not in df_combined.columns:
+if "Last_Updated_By" not in df.columns:
     df_combined["Active"] = "Y"
     df_combined["Last_Updated_By"] = "None"
     df_combined["Last_Update"] = "None"
@@ -150,8 +150,7 @@ if "Last_Updated_By" not in df_combined.columns:
 
 # COMMAND ----------
 
-#TODO : new dataframe created. Use df/df_combined
-df = AUR04(df_combined)  # complete telephone
+df = AUR04(df)  # complete telephone
 df = AUR06(df) # telephone type
 df = AUR07(df) # Bundesland capitalization
 df = AUR10(df) # Umsatz to float --> check if necessary

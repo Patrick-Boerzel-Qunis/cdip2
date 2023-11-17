@@ -1,4 +1,8 @@
 # Databricks notebook source
+#dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import sys
 
 # COMMAND ----------
@@ -8,7 +12,7 @@ user_id
 
 # COMMAND ----------
 
-sys.path.append(f"/Workspace/Repos/{user_id}/cdip-interim/logic")
+sys.path.append(f"../logic")
 
 # COMMAND ----------
 

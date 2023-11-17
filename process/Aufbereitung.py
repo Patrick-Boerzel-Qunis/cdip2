@@ -1,4 +1,8 @@
 # Databricks notebook source
+#dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import sys
 import pandas as pd
 import numpy as np
@@ -52,16 +56,8 @@ BED_UNIFIED_COLUMNS = {
 
 # COMMAND ----------
 
-#df_dnb = spark.read.table("`vtl-dev`.bronze.t_dnb").toPandas()
-df_bed = spark.read.table("`vtl-dev`.bronze.t_bed").toPandas()
-
-# COMMAND ----------
-
-df_bed.shape
-
-# COMMAND ----------
-
 df_dnb = spark.read.table("`vtl-dev`.bronze.t_dnb").toPandas()
+df_bed = spark.read.table("`vtl-dev`.bronze.t_bed").toPandas()
 
 # COMMAND ----------
 
@@ -113,6 +109,7 @@ if "BED_Flag_Quality" in df_combined.columns and "Status" in df_combined.columns
         Master_Marketable=lambda x: ((x.Marketable == "Y") & (x.Status == "aktiv"))
         | (x.BED_Flag_Quality == "SELECT"),
     )
+#TODO : The  following is dead code if df_combined has both DnB and BED data!  
 elif "Status" in df_combined.columns:
     df_combined = df_combined.assign(
         Master_Marketable=lambda x: ((x.Marketable == "Y") & (x.Status == "aktiv")),
@@ -131,6 +128,7 @@ df_combined = df_combined.assign(
     Source=lambda x: np.where(x["DUNS_Nummer"].isna(), "BED", "DNB"),
 )
 if "GP_RAW_ID" not in df_combined.columns:
+    #TODO : we need the definition to be : GP_RAW_ID=lambda x: np.where(x["DUNS_Nummer"].isna(), "bed_"+x.BED_ID.astype(str), "dnb_"+x.DUNS_Nummer.astype(str)),
     df_combined = df_combined.assign(
         GP_RAW_ID=range(0, df_combined.shape[0]), GP_RAW_ID_index=lambda x: x.GP_RAW_ID
     ).set_index("GP_RAW_ID_index")
@@ -152,19 +150,20 @@ if "Last_Updated_By" not in df_combined.columns:
 
 # COMMAND ----------
 
-df = AUR04(df_combined)
-df = AUR06(df)
-df = AUR07(df)
-df = AUR10(df)
-df = AUR13(df)
-df = AUR14(df)
-df = AUR18(df)
-df = AUR19(df)
-df = AUR20(df)
-df = AUR21(df)
-df = AUR108(df)
-df = AUR109(df)
-df = AUR111(df)  # Is this needed, as in the first draft it was not included
+#TODO : new dataframe created. Use df/df_combined
+df = AUR04(df_combined)  # complete telephone
+df = AUR06(df) # telephone type
+df = AUR07(df) # Bundesland capitalization
+df = AUR10(df) # Umsatz to float --> check if necessary
+df = AUR13(df) # Process Marketable, Firmenzentrale_Ausland, Tel_Select 
+df = AUR14(df) # process Hauptbranche
+df = AUR18(df) # process strase
+df = AUR19(df) # process Telefon_complete --> contradicts AUR04
+df = AUR20(df) # process Telefon_complete --> contradicts AUR04 & AUR19!
+df = AUR21(df) # process Hausnummer
+df = AUR108(df) # convert multiple title/position/gender text to single text
+df = AUR109(df) # Status to boolean
+df = AUR111(df)  # Process Handelsname , Is this needed, as in the first draft it was not included
 df
 
 # COMMAND ----------
@@ -179,6 +178,7 @@ df_final = spark.createDataFrame(df)
 
 # COMMAND ----------
 
+# TODO : SRao : When the dataset is combined and after AUR108, we do not need the _1,_2,_3 data of DnB.
 from pyspark.sql.types import StringType
 
 possible_null_columns = {"Titel_2": StringType(), "Titel_3": StringType()}

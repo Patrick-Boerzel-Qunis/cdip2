@@ -626,19 +626,24 @@ def address_master(
             df_res = (
                 df_res.assign(
                     Exact_Bundesland=lambda x: np.where(
-                        x["state"] != x["VT_Bundesland"], x["VT_Bundesland"], np.NaN
+                        (pd.notna(x["state"]) & pd.notna(x["VT_Bundesland"]) & (x["state"] != x["VT_Bundesland"])),
+                        x["VT_Bundesland"], np.NaN
                     ),
                     Exact_Hausnummer=lambda x: np.where(
-                        x["streetNr"] != x["VT_Hausnummer"], x["VT_Hausnummer"], np.NaN
+                        (pd.notna(x["streetNr"]) & pd.notna(x["VT_Hausnummer"]) & (x["streetNr"] != x["VT_Hausnummer"])),
+                        x["VT_Hausnummer"], np.NaN
                     ),
                     Exact_Strasse=lambda x: np.where(
-                        x["street"] != x["VT_Strasse"], x["VT_Strasse"], np.NaN
+                        (pd.notna(x["street"]) & pd.notna(x["VT_Strasse"]) & (x["street"] != x["VT_Strasse"])),
+                        x["VT_Strasse"], np.NaN
                     ),
                     Exact_PLZ=lambda x: np.where(
-                        x["postCode"] != x["VT_PLZ"], x["VT_PLZ"], np.NaN
+                        (pd.notna(x["postCode"]) & pd.notna(x["VT_PLZ"]) & (x["postCode"] != x["VT_PLZ"])),
+                        x["VT_PLZ"], np.NaN
                     ),
                     Exact_Ort=lambda x: np.where(
-                        x["city"] != x["VT_Ort"], x["VT_Ort"], np.NaN
+                        (pd.notna(x["city"]) & pd.notna(x["VT_Ort"]) & (x["city"] != x["VT_Ort"])),
+                        x["VT_Ort"], np.NaN
                     ),
                     Bundesland=lambda x: np.where(
                         x["Exact_Bundesland"].isnull(),

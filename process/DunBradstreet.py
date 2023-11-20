@@ -20,7 +20,7 @@ from vst_data_analytics.preparation import (
     get_column_types,
     get_column_mapping,
 )
-from vst_data_analytics.transformations import index_data, join_data, replace_nan
+from vst_data_analytics.transformations import index_data, join_data, replace_nan, merge_data
 from vst_data_analytics.rules import AUR02_DnB, AUR03_DnB
 
 # COMMAND ----------
@@ -67,6 +67,10 @@ df_bisnode: dd.DataFrame = read_data(
 
 # COMMAND ----------
 
+df_bisnode.head(2)
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC # Bisnode Primus
 
@@ -86,12 +90,16 @@ df_bisnode_primus = read_data(
 
 # COMMAND ----------
 
+df_bisnode_primus.head(2)
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC # Aufbereitung
 
 # COMMAND ----------
 
-df = join_data(df_bisnode, df_bisnode_primus)
+df = merge_data(df_bisnode, df_bisnode_primus, merge_on = "DUNS_Nummer")
 
 # COMMAND ----------
 
@@ -156,3 +164,7 @@ spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option
 # COMMAND ----------
 
 dbutils.fs.rm(tmp_abfss_path, recurse=True)
+
+# COMMAND ----------
+
+

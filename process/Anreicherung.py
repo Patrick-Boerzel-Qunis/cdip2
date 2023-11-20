@@ -1,14 +1,9 @@
 # Databricks notebook source
-#dbutils.library.restartPython()
+dbutils.library.restartPython()
 
 # COMMAND ----------
 
 import sys
-
-# COMMAND ----------
-
-user_id = spark.sql('select current_user() as user').collect()[0]['user']
-user_id
 
 # COMMAND ----------
 

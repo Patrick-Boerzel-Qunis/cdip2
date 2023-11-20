@@ -15,7 +15,12 @@ sys.path.append(f"../logic")
 
 # COMMAND ----------
 
-DEBUG = True
+account_name = "cdip0dev0std"
+account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
+
+# COMMAND ----------
+
+DEBUG = False
 
 # COMMAND ----------
 
@@ -112,7 +117,8 @@ del df_dnb,df_bed
 
 # COMMAND ----------
 
-df.shape
+if DEBUG:
+    df.shape
 
 # COMMAND ----------
 
@@ -122,26 +128,75 @@ df.shape
 # COMMAND ----------
 
 if "BED_Flag_Quality" in df.columns and "Status" in df.columns:
-    df_combined = df.assign(
+    df = df.assign(
         Master_Marketable=lambda x: ((x.Marketable == "Y") & (x.Status == "aktiv"))
         | (x.BED_Flag_Quality == "SELECT"),
     )
 
 if "GP_RAW_ID" not in df.columns:
     #TODO : we need the definition to be : GP_RAW_ID=lambda x: np.where(x["DUNS_Nummer"].isna(), "bed_"+x.BED_ID.astype(str), "dnb_"+x.DUNS_Nummer.astype(str)),
-    df_combined = df_combined.assign(
-        GP_RAW_ID=range(0, df.shape[0]), GP_RAW_ID_index=lambda x: x.GP_RAW_ID
-    ).set_index("GP_RAW_ID_index")
+    df = df.assign(
+        GP_RAW_ID=range(0, df.shape[0])
+    ).set_index("GP_RAW_ID")
 
 now: str = str(datetime.now())
 # Lückenfüller für die ominöse Username Env Variable, die vorher gesetzt wurde.
 username: str = "dbx"
 if "Last_Updated_By" not in df.columns:
-    df_combined["Active"] = "Y"
-    df_combined["Last_Updated_By"] = "None"
-    df_combined["Last_Update"] = "None"
-    df_combined["Created_By"] = username
-    df_combined["Created_Date"] = now
+    df["Active"] = "Y"
+    df["Last_Updated_By"] = "None"
+    df["Last_Update"] = "None"
+    df["Created_By"] = username
+    df["Created_Date"] = now
+
+# COMMAND ----------
+
+if DEBUG:
+    df.shape
+
+# COMMAND ----------
+
+if DEBUG:
+    df.columns
+
+# COMMAND ----------
+
+REQUIRED_COLUMNS =                 [
+                    "Vorwahl_Telefon",
+                    "Telefon",
+                    "Bundesland",
+                    "Umsatz",
+                    "Marketable",
+                    "Status",
+                    "Hauptbranche",
+                    "Handelsname",
+                    "Ort",
+                    "Strasse",
+                    "Hausnummer",
+                    'Geschlecht_Text', 
+                    'Titel', 
+                    'Vorname', 
+                    'Name',
+                    "Name_1",
+                    "Name_2",
+                    "Name_3",
+                    "Vorname_1",
+                    "Vorname_2",
+                    "Vorname_3",
+                    "Geschlecht_Text_1",
+                    "Geschlecht_Text_2",
+                    "Geschlecht_Text_3",
+                    "DNB_Position_Text_1",
+                    "DNB_Position_Text_2",
+                    "DNB_Position_Text_3",
+                    "Titel_1",
+                    "Titel_2",
+                    "Titel_3",
+                ]
+
+df_part = df[
+                REQUIRED_COLUMNS
+            ]
 
 # COMMAND ----------
 
@@ -150,24 +205,60 @@ if "Last_Updated_By" not in df.columns:
 
 # COMMAND ----------
 
-df = AUR04(df)  # complete telephone
-df = AUR06(df) # telephone type
-df = AUR07(df) # Bundesland capitalization
-df = AUR10(df) # Umsatz to float --> check if necessary
-df = AUR13(df) # Process Marketable, Firmenzentrale_Ausland, Tel_Select 
-df = AUR14(df) # process Hauptbranche
-df = AUR18(df) # process strase
-df = AUR19(df) # process Telefon_complete --> contradicts AUR04
-df = AUR20(df) # process Telefon_complete --> contradicts AUR04 & AUR19!
-df = AUR21(df) # process Hausnummer
-df = AUR108(df) # convert multiple title/position/gender text to single text
-df = AUR109(df) # Status to boolean
-df = AUR111(df)  # Process Handelsname , Is this needed, as in the first draft it was not included
-df
+df_part= (df_part.pipe(AUR04) # complete telephone
+          .pipe(AUR06)  # telephone type
+          .pipe(AUR07)  # Bundesland capitalization
+          .pipe(AUR10) # Umsatz to float --> check if necessary
+          .pipe(AUR13) # Process Marketable, Firmenzentrale_Ausland, Tel_Select 
+          .pipe(AUR14) # process Hauptbranche
+          .pipe(AUR18) # process strasse
+          .pipe(AUR19) # process Telefon_complete --> contradicts AUR04
+          .pipe(AUR20) # process Telefon_complete --> contradicts AUR04 & AUR19!
+          .pipe(AUR21) # process Hausnummer
+          .pipe(AUR108) # convert multiple title/position/gender text to single text
+          .pipe(AUR109) # Status to boolean
+          .pipe(AUR111) # Process Handelsname ,@Patrick Is this needed, as in the first draft it was not included
+          )
 
 # COMMAND ----------
 
-df_final = spark.createDataFrame(df)
+if DEBUG:
+    df_part.head(5)
+
+# COMMAND ----------
+
+if DEBUG:
+    df.shape
+
+# COMMAND ----------
+
+df = df.drop(columns=REQUIRED_COLUMNS).join(df_part).reset_index()
+del df_part
+
+# COMMAND ----------
+
+if DEBUG:
+    df.head(5)
+
+# COMMAND ----------
+
+tmp_table = "t_aufb"
+
+df.to_parquet(path=f"az://landing/data/{tmp_table}/",
+              storage_options={'account_name': account_name,
+                               'account_key': account_key}
+              )
+
+#tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+#TODO :TC @patrick : Driver resource is not ussed, all spark df creation is done by worker, driver resources should be used
+# df_final = spark.createDataFrame(df)
 
 # COMMAND ----------
 
@@ -177,7 +268,7 @@ df_final = spark.createDataFrame(df)
 
 # COMMAND ----------
 
-# TODO : SRao : When the dataset is combined and after AUR108, we do not need the _1,_2,_3 data of DnB.
+# TODO  : SRao : When the dataset is combined and after AUR108, we do not need the _1,_2,_3 data of DnB.
 from pyspark.sql.types import StringType
 
 possible_null_columns = {"Titel_2": StringType(), "Titel_3": StringType()}
@@ -192,6 +283,51 @@ for col_name, col_type in possible_null_columns.items():
 
 # COMMAND ----------
 
-df_final.write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(
-    "`vtl-dev`.bronze.t_aufbereitung"
+#df.write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(
+#    "`vtl-dev`.bronze.t_aufbereitung"
+#)
+
+# COMMAND ----------
+
+account_name = "cdip0dev0std"
+
+# COMMAND ----------
+
+spark.conf.set(
+  "fs.azure.account.key."+ account_name +".dfs.core.windows.net",
+dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 )
+
+# COMMAND ----------
+
+# Test if you can read the folder
+dbutils.fs.ls("abfss://landing@cdip0dev0std.dfs.core.windows.net/")
+
+
+# COMMAND ----------
+
+tmp_table ="t_aufb"
+
+# COMMAND ----------
+
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
+
+# COMMAND ----------
+
+#df.write.format("parquet").mode("overwrite").save(tmp_abfss_path)
+
+# COMMAND ----------
+
+account_name = "cdip0dev0std"
+account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
+
+# COMMAND ----------
+
+df.to_parquet(path=tmp_abfss_path,
+              storage_options={'account_name': account_name,
+                               'account_key': account_key}
+              )
+
+# COMMAND ----------
+
+

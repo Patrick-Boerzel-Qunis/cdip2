@@ -237,19 +237,41 @@ del df_part
 
 # COMMAND ----------
 
-if DEBUG:
-    df.head(5)
+
+df.head(5)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+# MAGIC ## Write Data
+
+# COMMAND ----------
+
+ddf = dd.from_pandas(df, npartitions=1)
+
+# COMMAND ----------
+
+account_name = "cdip0dev0std"
+account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
 tmp_table = "t_aufb"
 
-df.to_parquet(path=f"az://landing/data/{tmp_table}/",
+dd.to_parquet(df=ddf,
+              path=f"az://landing/{tmp_table}/",
+              write_index=False,
+              overwrite = True,
               storage_options={'account_name': account_name,
                                'account_key': account_key}
               )
 
-#tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
+
+# COMMAND ----------
+
+spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable("`vtl-dev`.bronze.t_aufb")
 
 # COMMAND ----------
 
@@ -262,24 +284,12 @@ df.to_parquet(path=f"az://landing/data/{tmp_table}/",
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC
-# MAGIC *Titel_2* and *Title_3* can be of type *void*, so explicitly cast to string
-
-# COMMAND ----------
-
 # TODO  : SRao : When the dataset is combined and after AUR108, we do not need the _1,_2,_3 data of DnB.
 from pyspark.sql.types import StringType
 
 possible_null_columns = {"Titel_2": StringType(), "Titel_3": StringType()}
 for col_name, col_type in possible_null_columns.items():
     df_final = df_final.withColumn(col_name, df_final[col_name].cast(col_type))
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC ## Write Data
 
 # COMMAND ----------
 
@@ -303,30 +313,6 @@ dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 # Test if you can read the folder
 dbutils.fs.ls("abfss://landing@cdip0dev0std.dfs.core.windows.net/")
 
-
-# COMMAND ----------
-
-tmp_table ="t_aufb"
-
-# COMMAND ----------
-
-tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
-
-# COMMAND ----------
-
-#df.write.format("parquet").mode("overwrite").save(tmp_abfss_path)
-
-# COMMAND ----------
-
-account_name = "cdip0dev0std"
-account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
-
-# COMMAND ----------
-
-df.to_parquet(path=tmp_abfss_path,
-              storage_options={'account_name': account_name,
-                               'account_key': account_key}
-              )
 
 # COMMAND ----------
 

@@ -50,11 +50,6 @@ spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
 
 # COMMAND ----------
 
-account_name = "cdip0dev0std"
-account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
-
-# COMMAND ----------
-
 aufb_path = f"az://landing/t_aufb/*.parquet"
 storage_options = {"account_name": account_name, "account_key": account_key}
 df_auf: dd.DataFrame = dd.read_parquet(

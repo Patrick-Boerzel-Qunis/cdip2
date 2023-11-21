@@ -6,9 +6,11 @@ from matrixmatcher import match_multiprocessing
 from .mm_config import get_match_matrix_config
 
 
-def get_match_potentials(df: pd.DataFrame) -> pd.DataFrame:
+def get_match_potentials(df_in: pd.DataFrame) -> pd.DataFrame:
     """Determine duplicate potentials : both inter and intra data source"""
+    df=df_in.copy()
     zip_group = sorted(df.PLZ.str[:3].drop_duplicates().to_list())
+    df['PLZ_prefix'] = df.PLZ.str[:3]
 
     print(f"{str(len(zip_group))} zip groups have been created.")
     match_matrix, neighborhoods = get_match_matrix_config()
@@ -17,7 +19,7 @@ def get_match_potentials(df: pd.DataFrame) -> pd.DataFrame:
 
     for group in tqdm(zip_group, desc="Processing groups"):
         print(group)
-        df_slice = df.copy().loc[df.PLZ.str[:3] == group]
+        df_slice = df.loc[df.PLZ_prefix == group]
 
         matches = match_multiprocessing(
             df1=df_slice,

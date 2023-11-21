@@ -6,7 +6,7 @@ from matrixmatcher import match_multiprocessing
 from .mm_config import get_match_matrix_config
 
 
-def get_match_potentials(df_in: pd.DataFrame) -> pd.DataFrame:
+def get_match_potentials(df_in: pd.DataFrame , num_cores:int=8) -> pd.DataFrame:
     """Determine duplicate potentials : both inter and intra data source"""
     df=df_in.copy()
     zip_group = sorted(df.PLZ.str[:3].drop_duplicates().to_list())
@@ -27,7 +27,7 @@ def get_match_potentials(df_in: pd.DataFrame) -> pd.DataFrame:
             matrix=match_matrix,
             neighborhoods=neighborhoods,
             disable_msgs=True,
-            process_count=8,  # number of cores
+            process_count=num_cores,  # number of cores
         )
         df_result = matches.get_input_with_ids()
 

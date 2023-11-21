@@ -63,7 +63,8 @@ df.dtypes
 
 # COMMAND ----------
 
-df_res = get_match_potentials(df)
+NUM_CORES=10
+df_res = get_match_potentials(df,NUM_CORES)
 
 # COMMAND ----------
 

@@ -64,7 +64,7 @@ df.dtypes
 # COMMAND ----------
 
 NUM_CORES=10
-df_res = get_match_potentials(df,NUM_CORES)
+df_res = get_match_potentials(df,NUM_CORES, thread_settings {'threads': 2, 'slicesize': 10000},sliding_window_size=21)
 
 # COMMAND ----------
 

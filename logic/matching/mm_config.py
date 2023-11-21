@@ -76,7 +76,7 @@ def get_match_matrix_config(
     # '-': Die Felder können unterschiedlich gefüllt oder nicht gefüllt sein.
     #                Handelsname, Firmenname  Strasse, Hausnummer, PLZ,    Ort
     C0 = MatchCase(
-        [0.96, 0.96, 0.94, 0.94, 1.00, 0.90], ["+", "+", "+", "+", "+", "+"]
+        [0.96, 0.90, 0.94, 0.94, 1.00, 0.90], ["+", "+", "+", "+", "+", "+"]
     )
     C0a = MatchCase(
         [0.00, 0.96, 0.94, 0.94, 1.00, 0.90], ["-", "+", "+", "+", "+", "+"]

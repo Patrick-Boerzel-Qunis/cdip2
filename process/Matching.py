@@ -68,6 +68,12 @@ if DEBUG:
 
 # COMMAND ----------
 
+# TODO: Convert the <NA> to None/numpy.NaN
+# test by running on PLZ starting from '091'
+
+
+# COMMAND ----------
+
 if DEBUG:
     df.dtypes
 

@@ -20,6 +20,7 @@ def get_match_potentials(df_in: pd.DataFrame , num_cores:int=8, thread_settings:
     for group in tqdm(zip_group, desc="Processing groups"):
         print(group)
         df_slice = df.loc[df.PLZ_prefix == group]
+        print(len(df_slice))
 
         matches = match_multiprocessing(
             df1=df_slice,

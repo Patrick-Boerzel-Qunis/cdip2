@@ -1,5 +1,5 @@
 # Databricks notebook source
-dbutils.library.restartPython()
+dbutils.library.restartPython() 
 
 # COMMAND ----------
 
@@ -26,12 +26,12 @@ account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC Load data
+DEBUG = True
 
 # COMMAND ----------
 
-spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+# MAGIC %md
+# MAGIC Load data
 
 # COMMAND ----------
 
@@ -55,7 +55,7 @@ df = df_main[
         "Ort",
         "GP_RAW_ID",
     ]
-].set_index("GP_RAW_ID")
+]
 
 df = df.compute()
 
@@ -63,110 +63,19 @@ df
 
 # COMMAND ----------
 
-sum(df.PLZ.isna())
+if DEBUG:
+    sum(df.PLZ.isna())
 
 # COMMAND ----------
 
-df.dtypes
+if DEBUG:
+    df.dtypes
 
 # COMMAND ----------
 
-df_tmp = df[df.PLZ.str[:3]=='091']
-
-# COMMAND ----------
-
-del df
-
-# COMMAND ----------
-
-df_tmp
-
-# COMMAND ----------
-
-NUM_CORES=8
-df_res = get_match_potentials(df_tmp,NUM_CORES, thread_settings ={'threads': 2, 'slicesize': 10000},sliding_window_size=21)
-
-# COMMAND ----------
-
-df_res
-
-# COMMAND ----------
-
-df_tmp['PLZ_prefix'] = df_tmp.PLZ.str[:3]
-df_slice = df_tmp.loc[df_tmp.PLZ_prefix == '091']
-df_slice
-
-# COMMAND ----------
-
-from matrixmatcher import match_multiprocessing
-from matching.mm_config import get_match_matrix_config
-
-# COMMAND ----------
-
-num_cores:int=8
-thread_settings:dict = {'threads': 2, 'slicesize': 10000}
-sliding_window_size:int=21
-match_matrix, neighborhoods = get_match_matrix_config(sliding_window_size)
-
-# COMMAND ----------
-
-df_slice
-
-# COMMAND ----------
-
-df_slice.reset_index(inplace=True)
-df_slice
-
-# COMMAND ----------
-
-df_slice.shape
-
-# COMMAND ----------
-
-#ddf = dd.from_pandas(df_slice, npartitions=1)
-#tmp_table = "jannis_input"
-
-#dd.to_parquet(df=ddf,
-#              path=f"az://landing/{tmp_table}/",
-#              write_index=False,
-#              overwrite = True,
-#              storage_options={'account_name': account_name,
-#                               'account_key': account_key}
-#              )
-
-# COMMAND ----------
-
-df_slice.set_index("GP_RAW_ID",inplace=True)
-df_slice
-
-# COMMAND ----------
-
-matches = match_multiprocessing(
-            df1=df_slice,
-            df2=df_slice,
-            matrix=match_matrix,
-            neighborhoods=neighborhoods,
-            disable_msgs=True,
-            process_count=num_cores,
-            threading_settings=thread_settings,
-        )
-
-# COMMAND ----------
-
-df_result = matches.get_input_with_ids()
-df_result
-
-# COMMAND ----------
-
-df_slice
-
-# COMMAND ----------
-
-df_slice.createOrReplaceTempView("v_diff")
-
-# COMMAND ----------
-
-df_result.shape
+# Matrix matcher needs the index to be properly set, but not any ID!
+df.reset_index(drop=True, inplace=True)
+df
 
 # COMMAND ----------
 
@@ -206,33 +115,82 @@ df_res: dd.DataFrame = dd.read_parquet(
 
 # COMMAND ----------
 
-df_res.columns
-
-# COMMAND ----------
-
-df_main = df = merge_data(df_main, df_res, merge_on="GP_RAW_ID")
-
-# COMMAND ----------
-
 df_res = df_res.compute()
-#df_res.index.name= "GP_RAW_ID"
 df_res
 
 # COMMAND ----------
 
-df_res.index.value_counts()
+len(df_res.match_ID.unique())
 
 # COMMAND ----------
 
-df_main
+sum(df_res.match_ID=="unique_in_region")
 
 # COMMAND ----------
 
 df_res = get_temp_pvid(df_res)
+df_res.reset_index(inplace=True)
+df_res
 
 # COMMAND ----------
 
-df_res = raw_id_to_pvid(df_res)
+df_main = merge_data(df_main, df_res[["GP_RAW_ID","match_ID","PVID"]], merge_on="GP_RAW_ID")
+df_main
+
+# COMMAND ----------
+
+df = df_main[
+    [
+        "GP_RAW_ID",
+        "DUNS_Nummer",
+        "BED_ID",
+        "PVID",
+        "HNR",
+    ]
+]
+
+df= df.compute()
+df.set_index("GP_RAW_ID",inplace=True)
+df
+
+# COMMAND ----------
+
+df = raw_id_to_pvid(df)
+df.reset_index(inplace=True)
+df
+
+# COMMAND ----------
+
+df.columns
+
+# COMMAND ----------
+
+df_main = merge_data(df_main, df[["GP_RAW_ID",'PVID_HNR', 'HNR_not_present', 'PVID_count', 'PVID_HNR_count']], merge_on="GP_RAW_ID")
+df_main
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Write back to table
+# MAGIC
+
+# COMMAND ----------
+
+tmp_table = "t_matching"
+
+dd.to_parquet(df=df_main,
+              path=f"az://landing/{tmp_table}/",
+              write_index=False,
+              overwrite = True,
+              storage_options={'account_name': account_name,
+                               'account_key': account_key}
+              )
+
+
+# COMMAND ----------
+
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
+spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable("`vtl-dev`.bronze.t_matching")
 
 # COMMAND ----------
 

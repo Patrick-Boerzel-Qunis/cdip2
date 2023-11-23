@@ -75,13 +75,21 @@ def get_match_matrix_config(
     # '*': Beide Felder müssen entweder gefüllt oder leer sein
     # '-': Die Felder können unterschiedlich gefüllt oder nicht gefüllt sein.
     #                Handelsname, Firmenname  Strasse, Hausnummer, PLZ,    Ort
-    C0 = MatchCase(
-        [0.96, 0.90, 0.94, 0.94, 1.00, 0.90], ["+", "+", "+", "+", "+", "+"]
-    )
+    C0 = MatchCase([0.94, 0.00, 0.94, 0.94, 1.00, 0.90], ["+", "+", "+", "+", "+", "+"])
     C0a = MatchCase(
-        [0.00, 0.96, 0.94, 0.94, 1.00, 0.90], ["-", "+", "+", "+", "+", "+"]
+        [0.00, 0.94, 0.94, 0.94, 1.00, 0.90], ["-", "+", "+", "+", "+", "+"]
     )
-    
+
+    C1 = MatchCase([0.90, 0.00, 0.94, 0.94, 1.00, 0.72], ["+", "+", "+", "+", "+", "+"])
+    C1a = MatchCase(
+        [0.00, 0.90, 0.94, 0.94, 1.00, 0.72], ["-", "+", "+", "+", "+", "+"]
+    )
+
+    C2 = MatchCase([0.86, 0.00, 0.94, 0.94, 1.00, 0.72], ["+", "+", "+", "+", "+", "+"])
+    C2a = MatchCase(
+        [0.00, 0.86, 0.94, 0.94, 1.00, 0.72], ["-", "+", "+", "+", "+", "+"]
+    )
+
     match_matrix = MatchMatrix(
         [
             field_handelsname,
@@ -91,6 +99,6 @@ def get_match_matrix_config(
             field_plz,
             field_ort,
         ],
-        [C0, C0a],
+        [C0, C0a, C1, C1a, C2, C2a],
     )
     return match_matrix, neighborhood

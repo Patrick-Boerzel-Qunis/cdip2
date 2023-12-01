@@ -87,4 +87,10 @@ spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option
 
 # COMMAND ----------
 
+#tmp_table = "t_verflechtung"
+#tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
+#dbutils.fs.rm(tmp_abfss_path, recurse=True)
+
+# COMMAND ----------
+
 

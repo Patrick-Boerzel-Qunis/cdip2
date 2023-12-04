@@ -67,10 +67,6 @@ df_bisnode: dd.DataFrame = read_data(
 
 # COMMAND ----------
 
-df_bisnode.head(2)
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC # Bisnode Primus
 
@@ -87,10 +83,6 @@ df_bisnode_primus = read_data(
     account_key=account_key,
     engine="pyarrow",
 )
-
-# COMMAND ----------
-
-df_bisnode_primus.head(2)
 
 # COMMAND ----------
 
@@ -141,7 +133,7 @@ df = AUR03_DnB(df, MAP_GENDER)
 
 # COMMAND ----------
 
-tmp_table = "DnB_temp"
+tmp_table = "DnB_october"
 
 # COMMAND ----------
 
@@ -164,7 +156,3 @@ spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option
 # COMMAND ----------
 
 dbutils.fs.rm(tmp_abfss_path, recurse=True)
-
-# COMMAND ----------
-
-

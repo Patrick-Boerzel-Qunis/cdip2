@@ -1,8 +1,4 @@
 # Databricks notebook source
-# dbutils.library.restartPython()
-
-# COMMAND ----------
-
 import sys
 import dask
 import dask.dataframe as dd

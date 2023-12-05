@@ -1,8 +1,4 @@
 # Databricks notebook source
-dbutils.library.restartPython() 
-
-# COMMAND ----------
-
 import sys
 import dask
 import dask.dataframe as dd
@@ -27,12 +23,17 @@ account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
+LANDING_OUT_DIR = "data_pipeline"
+TARGET_TABLE = "t_matching"
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC Load data
 
 # COMMAND ----------
 
-aufb_path = f"az://landing/t_anreicherung/*.parquet"
+aufb_path = f"az://landing/{LANDING_OUT_DIR}/t_anreicherung/*.parquet"
 storage_options = {"account_name": account_name, "account_key": account_key}
 df_main: dd.DataFrame = dd.read_parquet(
     path=aufb_path,
@@ -56,33 +57,25 @@ df = df_main[
 
 df = df.compute()
 
-df
-
-# COMMAND ----------
-
-df.dtypes
-
-# COMMAND ----------
-
 # Matrix matcher needs the index to be properly set, but not any ID!
 df.reset_index(drop=True, inplace=True)
-df
 
 # COMMAND ----------
 
 # Convert the <NA> to None/numpy.NaN
 for col in ['Firmenname','Handelsname','PLZ','Hausnummer','Strasse','Ort']:
     df[col] = df[col].apply(lambda x: None if pd.isna(x) else x)
-df
 
 # COMMAND ----------
 
-df.PLZ.str[0:3].value_counts()
-
-# COMMAND ----------
-
+# Run matching algorithm
 NUM_CORES=16
 df_res = get_match_potentials(df,NUM_CORES,sliding_window_size=21, plz_digits = 3)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Save matching output
 
 # COMMAND ----------
 
@@ -90,15 +83,15 @@ ddf = dd.from_pandas(df_res, npartitions=13) # Almost 5h! the zip groups are don
 
 # COMMAND ----------
 
-tmp_table = "mm_output1"
-
 dd.to_parquet(df=ddf,
-              path=f"az://landing/{tmp_table}/",
+              path=f"az://landing/{LANDING_OUT_DIR}/mm_output/",
               write_index=False,
               overwrite = True,
               storage_options={'account_name': account_name,
                                'account_key': account_key}
               )
+
+def df_res, ddf
 
 # COMMAND ----------
 
@@ -107,7 +100,8 @@ dd.to_parquet(df=ddf,
 
 # COMMAND ----------
 
-data_path = f"az://landing/mm_output1/*.parquet"
+# Generate PVID for the match_IDs
+data_path = f"az://landing/{LANDING_OUT_DIR}/mm_output/*.parquet"
 storage_options = {"account_name": account_name, "account_key": account_key}
 df_res: dd.DataFrame = dd.read_parquet(
     path=data_path,
@@ -115,32 +109,17 @@ df_res: dd.DataFrame = dd.read_parquet(
     engine="pyarrow",
 )
 
-# COMMAND ----------
-
 df_res = df_res.compute()
-df_res
-
-# COMMAND ----------
-
-len(df_res.match_ID.unique())
-
-# COMMAND ----------
-
-sum(df_res.match_ID=="unique_in_region")
-
-# COMMAND ----------
 
 df_res = get_temp_pvid(df_res)
 df_res.reset_index(inplace=True,drop=True)
-df_res
 
-# COMMAND ----------
-
+# Add the PVID back to main data.
 df_main = merge_data(df_main, df_res[["GP_RAW_ID","match_ID","PVID"]], merge_on="GP_RAW_ID")
-df_main
 
 # COMMAND ----------
 
+# Convert HNR in terms of DnB/BED_ID to PVID
 df = df_main[
     [
         "GP_RAW_ID",
@@ -153,22 +132,11 @@ df = df_main[
 
 df= df.compute()
 df.set_index("GP_RAW_ID",inplace=True)
-df
-
-# COMMAND ----------
-
 df = raw_id_to_pvid(df)
 df.reset_index(inplace=True)
-df
 
-# COMMAND ----------
-
-df.columns
-
-# COMMAND ----------
-
+# Add the PVID_HNR and others back to main data.
 df_main = merge_data(df_main, df[["GP_RAW_ID",'PVID_HNR', 'HNR_not_present', 'PVID_count', 'PVID_HNR_count']], merge_on="GP_RAW_ID")
-df_main
 
 # COMMAND ----------
 
@@ -178,28 +146,19 @@ df_main
 
 # COMMAND ----------
 
-tmp_table = "t_matching"
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{LANDING_OUT_DIR}/{TARGET_TABLE}"
+dbutils.fs.rm(tmp_abfss_path, recurse=True)
+
+# COMMAND ----------
 
 dd.to_parquet(df=df_main,
-              path=f"az://landing/{tmp_table}/",
+              path=f"az://landing/{LANDING_OUT_DIR}/{TARGET_TABLE}/",
               write_index=False,
               overwrite = True,
               storage_options={'account_name': account_name,
                                'account_key': account_key}
               )
 
-
 # COMMAND ----------
 
-tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
-spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable("`vtl-dev`.bronze.t_matching")
-
-# COMMAND ----------
-
-#tmp_table = "t_matching"
-#tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
-#dbutils.fs.rm(tmp_abfss_path, recurse=True)
-
-# COMMAND ----------
-
-
+spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")

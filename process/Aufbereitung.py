@@ -1,8 +1,4 @@
 # Databricks notebook source
-dbutils.library.restartPython()
-
-# COMMAND ----------
-
 import sys
 import pandas as pd
 import dask.dataframe as dd
@@ -12,15 +8,6 @@ from datetime import datetime
 # COMMAND ----------
 
 sys.path.append(f"../logic")
-
-# COMMAND ----------
-
-account_name = "cdip0dev0std"
-account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
-
-# COMMAND ----------
-
-DEBUG = False
 
 # COMMAND ----------
 
@@ -42,14 +29,19 @@ from vst_data_analytics.rules import (
 
 # COMMAND ----------
 
-df_dnb = spark.read.table("`vtl-dev`.bronze.t_dnb").toPandas()
-df_bed = spark.read.table("`vtl-dev`.bronze.t_bed").toPandas()
+account_name = "cdip0dev0std"
+account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
-if DEBUG :
-    print(df_dnb.shape)
-    print(df_bed.shape)
+LANDING_IN_DIR = "data_october"
+LANDING_OUT_DIR = "data_pipeline"
+TARGET_TABLE = "t_aufb"
+
+# COMMAND ----------
+
+df_dnb = spark.read.table("`vtl-dev`.bronze.t_dnb").toPandas()
+df_bed = spark.read.table("`vtl-dev`.bronze.t_bed").toPandas()
 
 # COMMAND ----------
 
@@ -117,11 +109,6 @@ del df_dnb,df_bed
 
 # COMMAND ----------
 
-if DEBUG:
-    df.shape
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC #### Postprocessing after Combine
 
@@ -148,16 +135,6 @@ if "Last_Updated_By" not in df.columns:
     df["Last_Update"] = "None"
     df["Created_By"] = username
     df["Created_Date"] = now
-
-# COMMAND ----------
-
-if DEBUG:
-    df.shape
-
-# COMMAND ----------
-
-if DEBUG:
-    df.columns
 
 # COMMAND ----------
 
@@ -222,23 +199,8 @@ df_part= (df_part.pipe(AUR04) # complete telephone
 
 # COMMAND ----------
 
-if DEBUG:
-    df_part.head(5)
-
-# COMMAND ----------
-
-if DEBUG:
-    df.shape
-
-# COMMAND ----------
-
 df = df.drop(columns=REQUIRED_COLUMNS).join(df_part).reset_index()
 del df_part
-
-# COMMAND ----------
-
-
-df.head(5)
 
 # COMMAND ----------
 
@@ -248,72 +210,23 @@ df.head(5)
 
 # COMMAND ----------
 
-ddf = dd.from_pandas(df, npartitions=1)
+ddf = dd.from_pandas(df, npartitions=13)
 
 # COMMAND ----------
 
-account_name = "cdip0dev0std"
-account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{LANDING_OUT_DIR}/{TARGET_TABLE}"
+dbutils.fs.rm(tmp_abfss_path, recurse=True)
 
 # COMMAND ----------
-
-tmp_table = "t_aufb"
 
 dd.to_parquet(df=ddf,
-              path=f"az://landing/{tmp_table}/",
+              path=f"az://landing/{LANDING_OUT_DIR}/{TARGET_TABLE}/",
               write_index=False,
               overwrite = True,
               storage_options={'account_name': account_name,
                                'account_key': account_key}
               )
 
-tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
-
 # COMMAND ----------
 
-spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable("`vtl-dev`.bronze.t_aufb")
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
-#TODO :TC @patrick : Driver resource is not ussed, all spark df creation is done by worker, driver resources should be used
-# df_final = spark.createDataFrame(df)
-
-# COMMAND ----------
-
-# TODO  : SRao : When the dataset is combined and after AUR108, we do not need the _1,_2,_3 data of DnB.
-from pyspark.sql.types import StringType
-
-possible_null_columns = {"Titel_2": StringType(), "Titel_3": StringType()}
-for col_name, col_type in possible_null_columns.items():
-    df_final = df_final.withColumn(col_name, df_final[col_name].cast(col_type))
-
-# COMMAND ----------
-
-#df.write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(
-#    "`vtl-dev`.bronze.t_aufbereitung"
-#)
-
-# COMMAND ----------
-
-account_name = "cdip0dev0std"
-
-# COMMAND ----------
-
-spark.conf.set(
-  "fs.azure.account.key."+ account_name +".dfs.core.windows.net",
-dbutils.secrets.get(scope="cdip-scope", key="dask_key")
-)
-
-# COMMAND ----------
-
-# Test if you can read the folder
-dbutils.fs.ls("abfss://landing@cdip0dev0std.dfs.core.windows.net/")
-
-
-# COMMAND ----------
-
-
+spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")

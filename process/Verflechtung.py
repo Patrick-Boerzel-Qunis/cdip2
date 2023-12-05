@@ -1,8 +1,4 @@
 # Databricks notebook source
-dbutils.library.restartPython()
-
-# COMMAND ----------
-
 import sys
 import dask
 import dask.dataframe as dd
@@ -23,12 +19,17 @@ account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
+LANDING_OUT_DIR = "data_pipeline"
+TARGET_TABLE = "t_verflechtung"
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ### Load data
 
 # COMMAND ----------
 
-aufb_path = f"az://landing/t_survivorship/*.parquet"
+aufb_path = f"az://landing/{LANDING_OUT_DIR}/t_survivorship/*.parquet"
 storage_options = {"account_name": account_name, "account_key": account_key}
 df_main: dd.DataFrame = dd.read_parquet(
     path=aufb_path,
@@ -38,24 +39,14 @@ df_main: dd.DataFrame = dd.read_parquet(
 
 # COMMAND ----------
 
-df_main.columns
-
-# COMMAND ----------
-
 df = df_main[["PVID","PVID_HNR","HNR_not_present", "PVID_HNR_count"]]
 df= df.compute()
 df.set_index("PVID",inplace=True)
-df
 
-# COMMAND ----------
-
+# Verflechtung : get HNR_Agg
 df = df.join(get_aggregated_hnr(df))
-df
-
-# COMMAND ----------
 
 df.reset_index(inplace=True)
-df
 
 # COMMAND ----------
 
@@ -65,32 +56,23 @@ df
 # COMMAND ----------
 
 df_main = merge_data(df_main,df[["PVID","HNR_Agg"]],merge_on="PVID")
-df_main
 
 # COMMAND ----------
 
-tmp_table = "t_verflechtung"
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{LANDING_OUT_DIR}/{TARGET_TABLE}"
+dbutils.fs.rm(tmp_abfss_path, recurse=True)
+
+
+# COMMAND ----------
 
 dd.to_parquet(df=df_main,
-              path=f"az://landing/{tmp_table}/",
+              path=f"az://landing/{LANDING_OUT_DIR}/{TARGET_TABLE}/",
               write_index=False,
               overwrite = True,
               storage_options={'account_name': account_name,
                                'account_key': account_key}
               )
 
-
 # COMMAND ----------
 
-tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
-spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable("`vtl-dev`.bronze.t_verflechtung")
-
-# COMMAND ----------
-
-#tmp_table = "t_verflechtung"
-#tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
-#dbutils.fs.rm(tmp_abfss_path, recurse=True)
-
-# COMMAND ----------
-
-
+spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")

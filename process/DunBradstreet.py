@@ -30,10 +30,6 @@ spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
 
 # COMMAND ----------
 
-version = "00"
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC Dask storage account  
 
@@ -44,7 +40,9 @@ account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
-target_table = "`vtl-dev`.bronze.t_dnb"
+LANDING_IN_DIR = "data_october"
+LANDING_OUT_DIR = "data_pipeline"
+TARGET_TABLE = "t_dnb"
 
 # COMMAND ----------
 
@@ -53,7 +51,7 @@ target_table = "`vtl-dev`.bronze.t_dnb"
 
 # COMMAND ----------
 
-bisnode_path = f"az://landing/data/01_bisnode_2023_7_V.{version}_*.parquet"
+bisnode_path = f"az://landing/{LANDING_IN_DIR}/01_bisnode_2023_7_V.00_*.parquet"
 
 # COMMAND ----------
 
@@ -72,7 +70,7 @@ df_bisnode: dd.DataFrame = read_data(
 
 # COMMAND ----------
 
-bisnode_primus_path = f"az://landing/data/02_bisnode_primus_2023_7_V.{version}_*.parquet"
+bisnode_primus_path = f"az://landing/{LANDING_IN_DIR}/02_bisnode_primus_2023_7_V.00_*.parquet"
 
 # COMMAND ----------
 
@@ -87,7 +85,7 @@ df_bisnode_primus = read_data(
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Aufbereitung
+# MAGIC # Final DnB data
 
 # COMMAND ----------
 
@@ -95,50 +93,23 @@ df = merge_data(df_bisnode, df_bisnode_primus, merge_on = "DUNS_Nummer")
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC
-# MAGIC Nullwerte vereinheitlichen
+df = AUR02_DnB(df, MAP_TITLE) # academic titel standardization
+df = AUR03_DnB(df, MAP_GENDER) # Anrede standardisieren
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC
-# MAGIC Akademische Titel standardisieren
+# MAGIC ## Write to table
 
 # COMMAND ----------
 
-df = AUR02_DnB(df, MAP_TITLE)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC Anrede standardisieren
-
-# COMMAND ----------
-
-df = AUR03_DnB(df, MAP_GENDER)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC Egntl sollten hier _Nebenbranchen_ als _Listen fünfstelliger-Werte ausgewiesen werden_. Die Funktion ist aber eine noop -> wird hier weggelassen
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC Außerdem sollen hier _Beschaeftigte_ und _Segment_ als numerische Werte formatiert werden. Diese sind aber durch das Mapping bereits in den richtigen Type gecastet.
-
-# COMMAND ----------
-
-tmp_table = "DnB_october"
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{LANDING_OUT_DIR}/{TARGET_TABLE}"
+dbutils.fs.rm(tmp_abfss_path, recurse=True)
 
 # COMMAND ----------
 
 dd.to_parquet(df=df,
-              path=f"az://landing/{tmp_table}/",
+              path=f"az://landing/{LANDING_OUT_DIR}/{TARGET_TABLE}/",
               write_index=False,
               overwrite = True,
               storage_options={'account_name': account_name,
@@ -147,12 +118,4 @@ dd.to_parquet(df=df,
 
 # COMMAND ----------
 
-tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{tmp_table}"
-
-# COMMAND ----------
-
-spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(target_table)
-
-# COMMAND ----------
-
-dbutils.fs.rm(tmp_abfss_path, recurse=True)
+spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")

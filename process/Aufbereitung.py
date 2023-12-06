@@ -1,4 +1,8 @@
 # Databricks notebook source
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import sys
 import pandas as pd
 import dask.dataframe as dd
@@ -48,7 +52,6 @@ df_dnb: dd.DataFrame = dd.read_parquet(
     engine="pyarrow",
 )
 df_dnb = df_dnb.compute()
-df_dnb.shape
 
 # COMMAND ----------
 
@@ -59,7 +62,6 @@ df_bed: dd.DataFrame = dd.read_parquet(
     engine="pyarrow",
 )
 df_bed = df_bed.compute()
-df_bed.shape
 
 # COMMAND ----------
 
@@ -132,6 +134,11 @@ del df_dnb,df_bed
 
 # COMMAND ----------
 
+for col in ['Status','BED_Flag_Quality','Marketable']:
+    df[col] = df[col].apply(lambda x: None if pd.isna(x) else x)
+
+# COMMAND ----------
+
 if "BED_Flag_Quality" in df.columns and "Status" in df.columns:
     df = df.assign(
         Master_Marketable=lambda x: ((x.Marketable == "Y") & (x.Status == "aktiv"))
@@ -195,6 +202,11 @@ df_part = df[
 
 # COMMAND ----------
 
+for col in REQUIRED_COLUMNS:
+    df_part[col] = df_part[col].apply(lambda x: None if pd.isna(x) else x)
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Transform CombinedDataset
 
@@ -248,7 +260,3 @@ dd.to_parquet(df=ddf,
 # COMMAND ----------
 
 spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")
-
-# COMMAND ----------
-
-

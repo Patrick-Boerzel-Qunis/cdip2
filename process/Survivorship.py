@@ -28,10 +28,10 @@ TARGET_TABLE = "t_survivorship"
 
 # COMMAND ----------
 
-aufb_path = f"az://landing/{LANDING_OUT_DIR}/t_matching/*.parquet"
+data_path = f"az://landing/{LANDING_OUT_DIR}/t_matching/*.parquet"
 storage_options = {"account_name": account_name, "account_key": account_key}
 df_raw: dd.DataFrame = dd.read_parquet(
-    path=aufb_path,
+    path=data_path,
     storage_options=storage_options, 
     engine="pyarrow",
 )

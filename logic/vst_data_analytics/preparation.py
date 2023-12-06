@@ -9,7 +9,7 @@ def get_columns_of_type(type_mappings: dict[str, str], data_type: str) -> list[s
 
 
 def cast_types(df: dd.DataFrame, type_mappings: dict[str, str]) -> dd.DataFrame:
-    df = df.replace("None", pd.NA)
+    df = df.replace("None", None)
     return df.astype(type_mappings)
 
 

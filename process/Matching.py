@@ -108,7 +108,6 @@ df_res: dd.DataFrame = dd.read_parquet(
 )
 
 df_res = df_res.compute()
-
 df_res = get_temp_pvid(df_res)
 df_res.reset_index(inplace=True,drop=True)
 

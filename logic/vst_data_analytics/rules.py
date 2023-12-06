@@ -196,7 +196,6 @@ def AUR108(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def AUR109(df: dd.DataFrame) -> dd.DataFrame:
-    df.Status = df.Status.fillna("inaktiv")
     return df.assign(
         Status=lambda x: np.where(x.Status == "inaktiv", False, True),
     )
@@ -218,7 +217,7 @@ def AAR050(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def get_umsatz_score(df_bisnode: dd.DataFrame) -> dd.DataFrame:
-    df = df_bisnode.replace("None", pd.NA).assign(
+    df = df_bisnode.replace("None", None).assign(
         Umsatz=lambda x: x.Umsatz.astype("Float32")
     )
     df["Umsatz_Score"] = (
@@ -248,7 +247,7 @@ def get_umsatz_score(df_bisnode: dd.DataFrame) -> dd.DataFrame:
 
 
 def get_beschaeftigte_score(df_bisnode: dd.DataFrame) -> dd.DataFrame:
-    df = df_bisnode.replace("None", pd.NA).assign(
+    df = df_bisnode.replace("None", None).assign(
         Beschaeftigte=lambda x: x.Beschaeftigte.astype("Float32")
     )
     df["Beschaeftigte_Score"] = (

@@ -69,8 +69,7 @@ TARGET_TABLE = "t_bed"
 
 # COMMAND ----------
 
-bed_path = f"az://landing/{LANDING_IN_DIR}/bedirect_2023_7_V.00_*.parquet"
-
+bed_path = f"az://landing/{LANDING_IN_DIR}/bedirect_preprocessed/*.parquet"
 
 df: dd.DataFrame = read_data(
     path=bed_path,
@@ -111,7 +110,7 @@ df = AUR110(df)
 
 # COMMAND ----------
 
-plz_mapping_path = f"az://landing/{LANDING_IN_DIR}/plz_bundesland_mapping_2023_7_V.00_0.parquet"
+plz_mapping_path = f"az://landing/data/plz_bundesland_mapping_2023_7_V.00_0.parquet"
 
 df_plz: dd.DataFrame = read_data(
     path=plz_mapping_path,
@@ -134,7 +133,7 @@ df = merge_data(df, df_plz, merge_on="PLZ")
 
 # COMMAND ----------
 
-bed_branch_path = f"az://landing/{LANDING_IN_DIR}/bed_branch_mapping_2023_7_V.00_0.parquet"
+bed_branch_path = f"az://landing/data/bed_branch_mapping_2023_7_V.00_0.parquet"
 
 df_bed_branch: dd.DataFrame = read_data(
     path=bed_branch_path,
@@ -180,7 +179,7 @@ df_copy = AAR050(df_copy)
 
 # COMMAND ----------
 
-bisnode_path = f"az://landing/{LANDING_IN_DIR}/01_bisnode_2023_7_V.00_*.parquet"
+bisnode_path = f"az://landing/{LANDING_IN_DIR}/01_bisnode_*.parquet"
 
 df_bisnode: dd.DataFrame = read_data(
     path=bisnode_path,
@@ -202,7 +201,7 @@ df_copy = AAR051(df_copy, df_bisnode)
 
 # COMMAND ----------
 
-industrie_path = f"az://landing/{LANDING_IN_DIR}/industriescore_2023_7_V.00_0.parquet"
+industrie_path = f"az://landing/data/industriescore_2023_7_V.00_0.parquet"
 
 df_industrie: dd.DataFrame = read_data(
     path=industrie_path,

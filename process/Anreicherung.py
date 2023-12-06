@@ -94,7 +94,7 @@ df = create_hauptbranche_id(df)
 
 # COMMAND ----------
 
-data_path = f"az://landing/{LANDING_IN_DIR}/WZ_NACE_Mapping*.parquet"
+data_path = f"az://landing/data/WZ_NACE_Mapping*.parquet"
 df_nace: dd.DataFrame = (
     dd.read_parquet(
         path=data_path,
@@ -133,3 +133,7 @@ dd.to_parquet(df=df,
 # COMMAND ----------
 
 spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")
+
+# COMMAND ----------
+
+

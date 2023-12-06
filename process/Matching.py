@@ -33,10 +33,10 @@ TARGET_TABLE = "t_matching"
 
 # COMMAND ----------
 
-aufb_path = f"az://landing/{LANDING_OUT_DIR}/t_anreicherung/*.parquet"
+data_path = f"az://landing/{LANDING_OUT_DIR}/t_anreicherung/*.parquet"
 storage_options = {"account_name": account_name, "account_key": account_key}
 df_main: dd.DataFrame = dd.read_parquet(
-    path=aufb_path,
+    path=data_path,
     storage_options=storage_options, 
     engine="pyarrow",
 )
@@ -79,7 +79,7 @@ df_res = get_match_potentials(df,NUM_CORES,sliding_window_size=21, plz_digits = 
 
 # COMMAND ----------
 
-ddf = dd.from_pandas(df_res, npartitions=13) # Almost 5h! the zip groups are done ca 13s each
+ddf = dd.from_pandas(df_res, npartitions=13) 
 
 # COMMAND ----------
 
@@ -90,8 +90,6 @@ dd.to_parquet(df=ddf,
               storage_options={'account_name': account_name,
                                'account_key': account_key}
               )
-
-def df_res, ddf
 
 # COMMAND ----------
 
@@ -162,3 +160,7 @@ dd.to_parquet(df=df_main,
 # COMMAND ----------
 
 spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")
+
+# COMMAND ----------
+
+

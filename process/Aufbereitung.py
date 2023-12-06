@@ -31,6 +31,7 @@ from vst_data_analytics.rules import (
 
 account_name = "cdip0dev0std"
 account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
+storage_options = {"account_name": account_name, "account_key": account_key}
 
 # COMMAND ----------
 
@@ -40,8 +41,25 @@ TARGET_TABLE = "t_aufb"
 
 # COMMAND ----------
 
-df_dnb = spark.read.table("`vtl-dev`.bronze.t_dnb").toPandas()
-df_bed = spark.read.table("`vtl-dev`.bronze.t_bed").toPandas()
+data_path = f"az://landing/{LANDING_OUT_DIR}/t_dnb/*.parquet"
+df_dnb: dd.DataFrame = dd.read_parquet(
+    path=data_path,
+    storage_options=storage_options, 
+    engine="pyarrow",
+)
+df_dnb = df_dnb.compute()
+df_dnb.shape
+
+# COMMAND ----------
+
+data_path = f"az://landing/{LANDING_OUT_DIR}/t_bed/*.parquet"
+df_bed: dd.DataFrame = dd.read_parquet(
+    path=data_path,
+    storage_options=storage_options, 
+    engine="pyarrow",
+)
+df_bed = df_bed.compute()
+df_bed.shape
 
 # COMMAND ----------
 
@@ -74,8 +92,8 @@ BED_UNIFIED_COLUMNS = {
 
 # COMMAND ----------
 
-df_dnb.rename(columns=DNB_UNIFIED_COLUMNS, inplace=True)
-df_bed.rename(columns=BED_UNIFIED_COLUMNS, inplace=True)
+df_dnb = df_dnb.rename(columns=DNB_UNIFIED_COLUMNS)
+df_bed = df_bed.rename(columns=BED_UNIFIED_COLUMNS)
 
 # COMMAND ----------
 
@@ -230,3 +248,7 @@ dd.to_parquet(df=ddf,
 # COMMAND ----------
 
 spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")
+
+# COMMAND ----------
+
+

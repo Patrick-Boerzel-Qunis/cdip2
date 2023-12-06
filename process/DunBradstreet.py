@@ -51,7 +51,7 @@ TARGET_TABLE = "t_dnb"
 
 # COMMAND ----------
 
-bisnode_path = f"az://landing/{LANDING_IN_DIR}/01_bisnode_2023_7_V.00_*.parquet"
+bisnode_path = f"az://landing/{LANDING_IN_DIR}/01_bisnode_*.parquet"
 
 # COMMAND ----------
 
@@ -70,7 +70,7 @@ df_bisnode: dd.DataFrame = read_data(
 
 # COMMAND ----------
 
-bisnode_primus_path = f"az://landing/{LANDING_IN_DIR}/02_bisnode_primus_2023_7_V.00_*.parquet"
+bisnode_primus_path = f"az://landing/{LANDING_IN_DIR}/dnb_primus_preprocessed/*.parquet"
 
 # COMMAND ----------
 
@@ -119,3 +119,7 @@ dd.to_parquet(df=df,
 # COMMAND ----------
 
 spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")
+
+# COMMAND ----------
+
+

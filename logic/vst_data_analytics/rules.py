@@ -196,6 +196,7 @@ def AUR108(df: dd.DataFrame) -> dd.DataFrame:
 
 
 def AUR109(df: dd.DataFrame) -> dd.DataFrame:
+    df.Status = df.Status.fillna("inaktiv")
     return df.assign(
         Status=lambda x: np.where(x.Status == "inaktiv", False, True),
     )

@@ -1,4 +1,8 @@
 # Databricks notebook source
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import sys
 import dask.dataframe as dd
 
@@ -19,8 +23,8 @@ account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
-LANDING_IN_DIR = "data_october"
-LANDING_OUT_DIR = "data_pipeline"
+LANDING_IN_DIR = "data_october/Abraham_Data"
+LANDING_OUT_DIR = "data_abraham_pipeline"
 TARGET_TABLE = "t_anreicherung"
 
 # COMMAND ----------

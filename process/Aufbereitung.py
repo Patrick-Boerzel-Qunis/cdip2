@@ -39,8 +39,8 @@ storage_options = {"account_name": account_name, "account_key": account_key}
 
 # COMMAND ----------
 
-LANDING_IN_DIR = "data_october"
-LANDING_OUT_DIR = "data_pipeline"
+LANDING_IN_DIR = "data_october/Abraham_Data"
+LANDING_OUT_DIR = "data_abraham_pipeline"
 TARGET_TABLE = "t_aufb"
 
 # COMMAND ----------

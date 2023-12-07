@@ -18,7 +18,7 @@ account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
-LANDING_OUT_DIR = "data_pipeline"
+LANDING_OUT_DIR = "data_abraham_pipeline"
 TARGET_TABLE = "t_survivorship"
 
 # COMMAND ----------

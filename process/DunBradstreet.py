@@ -40,8 +40,8 @@ account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
-LANDING_IN_DIR = "data_october"
-LANDING_OUT_DIR = "data_pipeline"
+LANDING_IN_DIR = "data_october/Abraham_Data"
+LANDING_OUT_DIR = "data_abraham_pipeline"
 TARGET_TABLE = "t_dnb"
 
 # COMMAND ----------
@@ -70,7 +70,7 @@ df_bisnode: dd.DataFrame = read_data(
 
 # COMMAND ----------
 
-bisnode_primus_path = f"az://landing/{LANDING_IN_DIR}/dnb_primus_preprocessed/*.parquet"
+bisnode_primus_path = f"az://landing/{LANDING_IN_DIR}/02_bisnode_primus_*.parquet"
 
 # COMMAND ----------
 

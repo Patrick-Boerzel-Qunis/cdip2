@@ -1,4 +1,8 @@
 # Databricks notebook source
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import sys
 import dask
 import dask.dataframe as dd
@@ -58,8 +62,8 @@ spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
 
 # COMMAND ----------
 
-LANDING_IN_DIR = "data_october"
-LANDING_OUT_DIR = "data_pipeline"
+LANDING_IN_DIR = "data_october/Abraham_Data"
+LANDING_OUT_DIR = "data_abraham_pipeline"
 TARGET_TABLE = "t_bed"
 
 # COMMAND ----------
@@ -69,7 +73,7 @@ TARGET_TABLE = "t_bed"
 
 # COMMAND ----------
 
-bed_path = f"az://landing/{LANDING_IN_DIR}/bedirect_preprocessed/*.parquet"
+bed_path = f"az://landing/{LANDING_IN_DIR}/bedirect_RAW_*.parquet"
 
 df: dd.DataFrame = read_data(
     path=bed_path,

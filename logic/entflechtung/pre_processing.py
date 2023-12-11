@@ -14,7 +14,7 @@ def create_asp_address_key(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
     """Create string of complete address and complete address with name."""
-    df["Address_key"] = _create_address_key(df, ["Ort", "PLZ", "Strasse", "Hausnummer"])
+    df["Address_key"] = _create_address_key(df, ["PLZ","Ort", "Strasse", "Hausnummer"])
     df["ASP_address_key"] = _create_address_key(df, ["Address_key", "Vorname", "Name"])
 
     df.loc[

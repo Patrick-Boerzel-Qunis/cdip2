@@ -1,0 +1,13 @@
+CREATE OR REPLACE PROCEDURE CDIP_IN.0_PRC_PREP
+IS
+l_count number;
+l_procedure_name VARCHAR2(100);
+BEGIN
+
+ALTER TABLE CDIP_OUT.T_GP_FINAL_AZ_2310_V103
+ADD 
+(
+FLAG_ONNET                       NUMBER(1,0), 
+FLAG_ONNET_OHNE_BT               NUMBER(1,0), 
+FLAG_ONNET_BT                    NUMBER(1,0),
+);

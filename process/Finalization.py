@@ -49,7 +49,9 @@ df["Master_Marketable"] = df["Master_Marketable"] & df["Status"]
 
 # AAR06: "Adding dummy fields"
 df["Flag_Blacklist"] = False
-df["Flag_Customer"] = True
+df["FLAG_BESTANDSKUNDE"] = True
+df["FLAG_PUBLIC"] = True
+df["FLAG_GUELTIG"] = 0
 
 # AAR07: "Trasseninformationen Adding dummy fields"
 # AAR08: "Adding dummy fields"
@@ -95,6 +97,11 @@ for col in [
     'OMI_Grundstueck',
     'OMI_Bundesland',
     'OMI_Kirchengemeinde',
+    # MVC
+    'BLACKLIST_KRITERIUM',
+    'ETL_TIMESTAMP',
+    'FLAG_STRASSENSEITE',
+    'FIBRE_SCORE',
 ]:
     df[col] = None
 
@@ -110,6 +117,132 @@ for col in [
 ]:
     df[col] = ""
 
+
+# COMMAND ----------
+
+# rename and select data
+df = df.rename(
+    columns={
+        "Zentrale_Versatel_ID": "ZVID",
+        "Handelsname": "DNB_HANDELSNAME",
+        "Website": "INTERNETADRESSE",
+        "Nebenbranche":"NEBENBRANCHEN",
+        "Hauptbranche": "HAUPTBRANCHE_08",
+        "Hauptbranchentext": "HAUPTBRANCHENTEXT_08",
+        "Umsatz": "UMSATZ_MIO_EUR",
+        "Segment": "KUNDENSEGMENT",
+        "Register": "HANDELSREGISTER",
+        "Rechtsform": "RECHTSFORM_TEXT",
+    }
+)
+df = df.rename(columns={col: col.upper() for col in df.columns})
+
+# COMMAND ----------
+
+df = df.assign(
+    MVC_INAKTIV=lambda x: ~x.STATUS,
+    MVC_DUPLIKAT_GEBAEUDE=lambda x: x.ENTFL_ADDRESS == "Nicht Bester am Standort",
+    MVC_BESTANDSKUNDE=lambda x: x.FLAG_BESTANDSKUNDE
+    if "FLAG_BESTANDSKUNDE" in x
+    else False,
+    MVC_BLACKLIST=lambda x: x.FLAG_BLACKLIST if "FLAG_BLACKLIST" in x else False,
+    MVC_NON_MARKETABLE=lambda x: ~x.MASTER_MARKETABLE,
+    MVC_UNGUELTIGE_TEL=lambda x: ~x.P1_TEL_TYP.isin(["Festnetz", "Fixed network"]),
+    MVC_LE=lambda x: x.KUNDENSEGMENT == 1,
+    MVC_PUBLIC=lambda x: x.FLAG_PUBLIC if "FLAG_PUBLIC" in x else False,
+    MVC_UNTERNEHMENSZENTRALEN=lambda x: x.ENTFL_NATIONAL.isin(
+        ["Einzelunternehmen", "Firmenzentrale"]
+    ),
+    MVC_NIEDERLASSUNGEN=lambda x: x.ENTFL_NATIONAL == "Niederlassung",
+)
+
+# COMMAND ----------
+
+df = df[[
+    "PVID",
+    "ZVID",
+    "MAIN_DUNS_NUMMER",
+    "MAIN_BED_ID",
+    "ADDRESS_ID",
+    "FIRMENNAME",
+    "DNB_HANDELSNAME",
+    "STRASSE",
+    "HAUSNUMMER",
+    "PLZ",
+    "ORT",
+    "BUNDESLAND",
+    "GKZ",
+    "EMAIL",
+    "INTERNETADRESSE",
+    "P1_TEL_KOMPLETT",
+    "P1_TEL_TYP",
+    "P2_TEL_KOMPLETT",
+    "P2_TEL_TYP",
+    "GESCHLECHT_TEXT",
+    "TITEL",
+    "VORNAME",
+    "NAME",
+    "POSITION_TEXT",
+    "NACE_CODE",
+    "BRANCHE",
+    "HAUPTBRANCHE_08",
+    "HAUPTBRANCHENTEXT_08",
+    "NEBENBRANCHEN",
+    "BESCHAEFTIGTE",
+    "UMSATZ_MIO_EUR",
+    "KUNDENSEGMENT",
+    "ANZAHL_NIEDERLASSUNGEN",
+    "HANDELSREGISTER",
+    "RECHTSFORM_TEXT",
+    "HNR_AGG",
+    "STATUS",
+    "MASTER_MARKETABLE",
+    "FLAG_BESTANDSKUNDE",
+    "FLAG_BLACKLIST",
+    "BLACKLIST_KRITERIUM",
+    "FLAG_PUBLIC",
+    "AB_CLUSTER",
+    "AB_MUFFEN",
+    "AB_TRASSEN_VERTRIEB",
+    "AB_PLANTRASSEN_NICHT_WEBOM",
+    "AB_PLANTRASSEN_NORMAL",
+    "AB_PLANTRASSEN_5G",
+    "AB_TRASSEN_ALL",
+    "AB_TRASSEN_FREMD",
+    "AB_TRASSEN_FREMD_BT",
+    "AB_TRASSEN_FREMD_OHNE_BT",
+    "AB_TRASSEN_OWN",
+    "AB_TRASSEN_OWN_BT",
+    "AB_TRASSEN_OWN_OHNE_BT",
+    "ETL_TIMESTAMP",
+    "X",
+    "Y",
+    "FLAG_STRASSENSEITE",
+    "FIBRE_SCORE",
+    "ENTFL_NATIONAL",
+    "ENTFL_ADDRESS",
+    "ENTFL_GROUP_ID",
+    "MVC_INAKTIV",
+    "MVC_DUPLIKAT_GEBAEUDE",
+    "MVC_BESTANDSKUNDE",
+    "MVC_BLACKLIST",
+    "MVC_NON_MARKETABLE",
+    "MVC_UNGUELTIGE_TEL",
+    "MVC_LE",
+    "MVC_PUBLIC",
+    "MVC_UNTERNEHMENSZENTRALEN",
+    "MVC_NIEDERLASSUNGEN",
+    "OWN_LR_PEC",
+    "FLAG_GUELTIG",
+    "LR_DAT",
+    "LR_TYP",
+    "FREMD_LR_PEC",
+    "AGS",
+    "GEN",
+    "BEZ",
+    "CLUSTER_ID",
+    "ADDRESS_KEY",
+]]
 
 # COMMAND ----------
 
@@ -134,6 +267,10 @@ dd.to_parquet(df=df,
 # COMMAND ----------
 
 spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")
+
+# COMMAND ----------
+
+df.columns
 
 # COMMAND ----------
 

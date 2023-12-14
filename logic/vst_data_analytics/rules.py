@@ -787,31 +787,6 @@ def create_public_flags(
         ].dropna()
     )
 
-    liste_bundeslaender = [
-        "Baden Württemberg",
-        "Baden-Württemberg",
-        "Bayern",
-        "Berlin",
-        "Brandenburg",
-        "Bremen",
-        "Hamburg",
-        "Hessen",
-        "Mecklenburg-Vorpommern",
-        "Mecklenburg Vorpommern",
-        "Niedersachsen",
-        "Nordrhein Westfalen",
-        "Nordrhein-Westfalen",
-        "Rheinland-Pfalz",
-        "Rheinland Pfalz",
-        "Saarland",
-        "Sachsen",
-        "Sachsen-Anhalt",
-        "Sachsen Anhalt",
-        "Schleswig-Holstein",
-        "Schleswig Holstein",
-        "Thüringen",
-    ]
-
     liste_regierungsbezirke = [
         "Freiburg",
         "Karlsruhe",

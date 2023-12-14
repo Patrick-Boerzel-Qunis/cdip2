@@ -1,16 +1,22 @@
-import pandas as pd
 import logging
+
+import pandas as pd
+from matrixmatcher import match_multiprocessing
 from tqdm import tqdm
 
-from matrixmatcher import match_multiprocessing
 from .mm_config import get_match_matrix_config
 
 
-def get_match_potentials(df_in: pd.DataFrame , num_cores:int=8, sliding_window_size:int=21, plz_digits: int=3) -> pd.DataFrame:
+def get_match_potentials(
+    df_in: pd.DataFrame,
+    num_cores: int = 8,
+    sliding_window_size: int = 21,
+    plz_digits: int = 3,
+) -> pd.DataFrame:
     """Determine duplicate potentials : both inter and intra data source"""
-    df=df_in.copy()
+    df = df_in.copy()
     zip_group = sorted(df.PLZ.str[:plz_digits].drop_duplicates().to_list())
-    df['PLZ_prefix'] = df.PLZ.str[:plz_digits]
+    df["PLZ_prefix"] = df.PLZ.str[:plz_digits]
 
     print(f"{str(len(zip_group))} zip groups have been created.")
     match_matrix, neighborhoods = get_match_matrix_config(sliding_window_size)
@@ -32,14 +38,12 @@ def get_match_potentials(df_in: pd.DataFrame , num_cores:int=8, sliding_window_s
         )
         df_result = matches.get_input_with_ids()
 
-        if df_result['match_ID'].isna().all():
-            df_result["match_ID"] = df_result["match_ID"].fillna(
-            "unique_in_region"
-        )
+        if df_result["match_ID"].isna().all():
+            df_result["match_ID"] = df_result["match_ID"].fillna("unique_in_region")
         else:
             df_result["match_ID"] = (group + "_" + df_result["match_ID"]).fillna(
-            "unique_in_region"
-        )
+                "unique_in_region"
+            )
 
         df_list.append(df_result)
 

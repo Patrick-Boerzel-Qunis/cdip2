@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import requests
 
+from vst_data_analytics.constants import FINAL_KEYS, INTERIM_KEYS
+
 
 def AUR02_DnB(df: dd.DataFrame, mapping: dict[str, str]) -> dd.DataFrame:
     return df.assign(
@@ -626,24 +628,49 @@ def address_master(
             df_res = (
                 df_res.assign(
                     Exact_Bundesland=lambda x: np.where(
-                        (pd.notna(x["state"]) & pd.notna(x["VT_Bundesland"]) & (x["state"] != x["VT_Bundesland"])),
-                        x["VT_Bundesland"], np.NaN
+                        (
+                            pd.notna(x["state"])
+                            & pd.notna(x["VT_Bundesland"])
+                            & (x["state"] != x["VT_Bundesland"])
+                        ),
+                        x["VT_Bundesland"],
+                        np.NaN,
                     ),
                     Exact_Hausnummer=lambda x: np.where(
-                        (pd.notna(x["streetNr"]) & pd.notna(x["VT_Hausnummer"]) & (x["streetNr"] != x["VT_Hausnummer"])),
-                        x["VT_Hausnummer"], np.NaN
+                        (
+                            pd.notna(x["streetNr"])
+                            & pd.notna(x["VT_Hausnummer"])
+                            & (x["streetNr"] != x["VT_Hausnummer"])
+                        ),
+                        x["VT_Hausnummer"],
+                        np.NaN,
                     ),
                     Exact_Strasse=lambda x: np.where(
-                        (pd.notna(x["street"]) & pd.notna(x["VT_Strasse"]) & (x["street"] != x["VT_Strasse"])),
-                        x["VT_Strasse"], np.NaN
+                        (
+                            pd.notna(x["street"])
+                            & pd.notna(x["VT_Strasse"])
+                            & (x["street"] != x["VT_Strasse"])
+                        ),
+                        x["VT_Strasse"],
+                        np.NaN,
                     ),
                     Exact_PLZ=lambda x: np.where(
-                        (pd.notna(x["postCode"]) & pd.notna(x["VT_PLZ"]) & (x["postCode"] != x["VT_PLZ"])),
-                        x["VT_PLZ"], np.NaN
+                        (
+                            pd.notna(x["postCode"])
+                            & pd.notna(x["VT_PLZ"])
+                            & (x["postCode"] != x["VT_PLZ"])
+                        ),
+                        x["VT_PLZ"],
+                        np.NaN,
                     ),
                     Exact_Ort=lambda x: np.where(
-                        (pd.notna(x["city"]) & pd.notna(x["VT_Ort"]) & (x["city"] != x["VT_Ort"])),
-                        x["VT_Ort"], np.NaN
+                        (
+                            pd.notna(x["city"])
+                            & pd.notna(x["VT_Ort"])
+                            & (x["city"] != x["VT_Ort"])
+                        ),
+                        x["VT_Ort"],
+                        np.NaN,
                     ),
                     Bundesland=lambda x: np.where(
                         x["Exact_Bundesland"].isnull(),
@@ -702,3 +729,531 @@ def address_master(
 def create_hauptbranche_id(df: dd.DataFrame) -> dd.DataFrame:
     df["Hauptbranche_id"] = df.Hauptbranche.str[:2]
     return df
+
+
+def add_public_flag(
+    df: pd.DataFrame,
+    df_landkreis: pd.DataFrame,
+    df_gemeinde: pd.DataFrame,
+    df_public_stichworte: pd.DataFrame,
+) -> pd.DataFrame:
+    _keys = INTERIM_KEYS if "Firmenname" in df.columns else FINAL_KEYS
+    create_public_flags(df, df_landkreis, df_gemeinde, df_public_stichworte, **_keys)
+    if "FLAG_PUBLIC" not in df.columns:
+        if "PUBLIC_FLAG" in df.columns:
+            df.rename(columns={"PUBLIC_FLAG": "FLAG_PUBLIC"}, inplace=True)
+    return df
+
+
+def create_public_flags(
+    df,
+    df_landkreis,
+    df_gemeinde,
+    df_public_stichworte,
+    firmennamen=None,
+    rechtsform=None,
+    branche=None,
+    vorname=None,
+    nachname=None,
+):
+    """
+    Add the public flag to a data frame based on the specific columns. If there is "Firmenname"
+    and "Handelsname", please enter "Firmenname" first.
+
+    Args:
+        df: pandas.DataFrame
+        firmenname: list
+            columns containing the company name to check for specific words
+        branche: column containing branche as number wz 2008
+        rechtsform: column containing rechtsform as text
+        vorname: column containing first name of company contact person
+        nachname: column containing last name of company contact person
+
+    Returns:
+        df: pandas.DataFrame with the added public flag.
+
+    """
+    pattern_stadt = "|".join(
+        df_public_stichworte["PUBLIC_STAEDTE"][
+            df_public_stichworte["PUBLIC_STAEDTE"] != ""
+        ]
+    )
+
+    liste_parteien_lang = "|".join(
+        df_public_stichworte["PUBLIC_PARTEIEN_LANG"][
+            (df_public_stichworte["PUBLIC_PARTEIEN_LANG"] != "")
+            & (df_public_stichworte["PUBLIC_PARTEIEN_LANG"] != "mut")
+            & (df_public_stichworte["PUBLIC_PARTEIEN_LANG"] != "Zukunft.")
+        ].dropna()
+    )
+
+    liste_bundeslaender = [
+        "Baden Württemberg",
+        "Baden-Württemberg",
+        "Bayern",
+        "Berlin",
+        "Brandenburg",
+        "Bremen",
+        "Hamburg",
+        "Hessen",
+        "Mecklenburg-Vorpommern",
+        "Mecklenburg Vorpommern",
+        "Niedersachsen",
+        "Nordrhein Westfalen",
+        "Nordrhein-Westfalen",
+        "Rheinland-Pfalz",
+        "Rheinland Pfalz",
+        "Saarland",
+        "Sachsen",
+        "Sachsen-Anhalt",
+        "Sachsen Anhalt",
+        "Schleswig-Holstein",
+        "Schleswig Holstein",
+        "Thüringen",
+    ]
+
+    liste_regierungsbezirke = [
+        "Freiburg",
+        "Karlsruhe",
+        "Stuttgart",
+        "Tübingen",
+        "Oberbayern",
+        "Niederbayern",
+        "Oberfranken",
+        "Mittelfranken",
+        "Unterfranken",
+        "Oberpfalz",
+        "Schwaben",
+        "Darmstadt",
+        "Gießen",
+        "Kassel",
+        "Arnsberg",
+        "Detmold",
+        "Düsseldorf",
+        "Köln",
+        "Münster",
+    ]
+
+    stichworte_public_case_true = "|".join(
+        [
+            "Amt für",
+            "Amtsgericht",
+            "Anstalt",
+            "Anwaltsgerichtshof",
+            "Arbeitsamt",
+            "Arbeitsgericht",
+            "Auswärtiges Amt",
+            "Behörde",
+            "Bereitschaftspolizei",
+            "Berufsschule",
+            "Bezirk",
+            "Bundes",
+            "Bundesagentur",
+            "Bundesanstalt",
+            "Bundesbehörde",
+            "Bundesgericht",
+            "Bundesgerichtshof",
+            "Bundesland",
+            "Bundesministerium",
+            "Bundesministerium der Finanzen",
+            "Bundesministerium der Justiz und für Verbraucherschutz",
+            "Bundesministerium der Verteidigung",
+            "Bundesministerium des Innern, für Bau und Heimat",
+            "Bundesministerium für Arbeit und Soziales",
+            "Bundesministerium für Bildung und Forschung",
+            "Bundesministerium für Ernährung und Landwirtschaft",
+            "Bundesministerium für Familie, Senioren, Frauen und Jugend",
+            "Bundesministerium für Gesundheit",
+            "Bundesministerium für Umwelt, Naturschutz und nukleare Sicherheit",
+            "Bundesministerium für Verkehr und digitale Infrastruktur",
+            "Bundesministerium für Wirtschaft und Energie",
+            "Bundesministerium für wirtschaftliche Zusammenarbeit und Entwicklung",
+            "Bundessozialgericht",
+            "Bundeswehr",
+            "Deutsche Bahn Aktiengesellschaft",
+            "Deutsche Bahn AG",
+            "Deutsche Rentenversicherung",
+            "Dienstleistungszentrum",
+            "Eigenbetrieb",
+            "Eigenbetrieb",
+            "Entsorgung",
+            "Fachhochschule",
+            "Feuerwehr",
+            "Finanzgericht",
+            "Flughafen",
+            "Freistaat",
+            "Gemeindetag",
+            "Gemeinschaftsschule",
+            "Gericht",
+            "Gesamtschule",
+            "Grundschule",
+            "Gymnasium",
+            "Hansestadt",
+            "Hauptschule",
+            "Hauptstadt",
+            "Hochschule",
+            "IT-Dienstleistungszentrum",
+            "JVA",
+            "Job-Center",
+            "Jugendstraf",
+            "Justizvollzugsanstalt",
+            "Kommunalbehörde",
+            "Kommunale",
+            "Kreisklinik",
+            "Kreispolizei",
+            "Kreistag",
+            "Landesamt",
+            "Landesamt",
+            "Landesanstalt",
+            "Landesarbeitsgericht",
+            "Landesbehörde",
+            "Landesbibliothek",
+            "Landesbücherei",
+            "Landeshauptstadt",
+            "Landesjustiz",
+            "Landesjustizverwaltung",
+            "Landespolizeidirektion",
+            "Landesschulbehörde",
+            "Landessozialgericht",
+            "Landesstraßenbaubehörde",
+            "Landesverband",
+            "Landeszentralbank",
+            "Landgericht",
+            "Landkreis",
+            "Landkreistag",
+            "Landratsamt",
+            "Ministerium",
+            "Mittelschule",
+            "Oberlandesgericht",
+            "Oberstufe",
+            "Oberstufenzentrum",
+            "Ortsgericht",
+            "Polizei",
+            "Präsidium",
+            "Realschule",
+            "Regelschule",
+            "Regierungspräsidium",
+            "Regionalverkehr",
+            "Senat der",
+            "Sekundarschule",
+            "Senatsverwaltung",
+            "Sozialgericht",
+            "Stadtbibliothek",
+            "Stadtbücherei",
+            "Staatlich",
+            "Staatsanwaltschaft",
+            "Stadtwerk",
+            "Städtetag",
+            "Technische Universität",
+            "Universität",
+            "Universitätsklinikum",
+            "Verbandsgemeinde",
+            "Verfassungsgerichtshof",
+            "Verkehrsbetrieb",
+            "Verteidigung",
+            "Verwaltungsgemeinschaft",
+            "Verwaltungsgericht",
+            "Vollstreckungsgericht",
+            "Wasserschutzpolizei",
+            "Wasserwerk",
+            "Wetterdienst",
+            "behörde",
+            "kommunal",
+            "kommunaler",
+            "ministerium",
+            "polizei",
+            "städtisch",
+            "städtische",
+        ]
+    )
+
+    stichworte_public_case_false = "|".join(["aör", "justizkasse", "gerichtshof"])
+
+    stichworte_nicht_public_case_true = "|".join(
+        [
+            "Bundesarbeitsgemeinschaft",
+            "Bundesliga",
+            "Bundesverband",
+            "Bundesverein",
+            "Bundesvereinigung",
+            "Bundesweit",
+            "Innung",
+            "Kirche",
+            "Montessori",
+            "Rudolf Steiner",
+        ]
+    )
+
+    stichworte_nicht_public_case_false = "|".join(
+        [
+            "gewerkschaft",
+            "handelskammer",
+            "kinderkrippe",
+            "kita",
+            "kindertagesstätte",
+            "kindergarten",
+            "partei",
+            "verein",
+            "wirtschaftskammer",
+        ]
+    )
+
+    df["in_stadtliste"] = False
+
+    # EINSCHLUESSE
+
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna() & df[firmenname].str.contains(pattern_stadt),
+            "in_stadtliste",
+        ] = True
+
+    df["PUBLIC_FLAG"] = False
+
+    # RECHTSFORM
+    if rechtsform != None:
+        df.loc[
+            df[rechtsform].isin(
+                [
+                    "Anstalt öffentlichen Rechts",
+                    "Gebietskörperschaft des Landes",
+                    "Körperschaft öffentlichen Rechts",
+                    "Stiftung des öffentlichen Rechts",
+                ]
+            ),
+            "PUBLIC_FLAG",
+        ] = True
+
+        df.loc[
+            df[rechtsform].isin(["Kommunal-/Gemeindeverwaltung"])
+            & (df["in_stadtliste"] == True),
+            "PUBLIC_FLAG",
+        ] = True
+
+    # HAUPTBRANCHE
+    if branche != None:
+        df.loc[
+            (df[branche].notna() & df[branche].str.startswith("8411"))
+            & (df["in_stadtliste"] == True),
+            "PUBLIC_FLAG",
+        ] = True
+
+    # Stadt, Gemeinde, Kreis etc
+
+    df.loc[
+        df[firmennamen[0]].isin(df_public_stichworte["PUBLIC_STAEDTE"]), "PUBLIC_FLAG"
+    ] = True
+
+    df.loc[
+        df[firmennamen[0]].isin("Stadt " + df_public_stichworte["PUBLIC_STAEDTE"])
+        | df[firmennamen[0]].isin(
+            "Kreisstadt " + df_public_stichworte["PUBLIC_STAEDTE"]
+        )
+        | df[firmennamen[0]].isin(
+            "Kreisfreie Stadt " + df_public_stichworte["PUBLIC_STAEDTE"]
+        ),
+        "PUBLIC_FLAG",
+    ] = True
+
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & (
+                df[firmenname].isin("Kreis " + df_landkreis["Landkreis"])
+                | df[firmenname].isin("Landkreis " + df_landkreis["Landkreis"])
+                | df[firmenname].isin(
+                    df_landkreis["Landkreis"][
+                        df_landkreis["Landkreis"].str.endswith("Kreis")
+                    ]
+                )
+            ),
+            "PUBLIC_FLAG",
+        ] = True
+
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].isin(
+                ["Regierungsbezirk " + liste for liste in liste_regierungsbezirke]
+            ),
+            "PUBLIC_FLAG",
+        ] = True
+
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].isin("Gemeinde " + df_gemeinde["Gemeinde"]),
+            "PUBLIC_FLAG",
+        ] = True
+
+    # SCHLAGWORTE
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].str.contains(stichworte_public_case_true),
+            "PUBLIC_FLAG",
+        ] = True
+
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].str.contains(stichworte_public_case_false, case=False),
+            "PUBLIC_FLAG",
+        ] = True
+
+    # Agentur fuer Arbeit
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].str.contains("Agentur für Arbeit")
+            & (
+                ~(
+                    df[firmenname].notna()
+                    & df[firmenname].str.contains("Agentur für Arbeits")
+                )
+            ),
+            "PUBLIC_FLAG",
+        ] = True
+
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].str.contains("A.ö.R.", case=False, regex=False),
+            "PUBLIC_FLAG",
+        ] = True
+
+    # Staatlich
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].str.startswith(("Staatl.", "staatl."))
+            & (
+                ~(
+                    df[firmenname].notna()
+                    & df[firmenname].str.startswith(
+                        (
+                            "Staatl. anerkannt",
+                            "staatl. anerkannt",
+                            "Staatlich anerkannt",
+                            "staatlich anerkannt",
+                            "Staatl. geprüft",
+                            "staatl. geprüft",
+                            "Staatlich geprüft",
+                            "staatlich geprüft",
+                            "Staatl. angezeigt",
+                            "staatl. angezeigt",
+                            "Staatlich angezeigt",
+                            "staatlich angezeigt",
+                        )
+                    )
+                )
+            ),
+            "PUBLIC_FLAG",
+        ] = True
+
+    # AUSSCHLUESSE
+
+    # RECHTSFORM
+    if rechtsform != None:
+        df.loc[
+            df[rechtsform].isin(
+                [
+                    "eingetragener Verein",
+                    "kirchliche Institution",
+                ]
+            ),
+            "PUBLIC_FLAG",
+        ] = False
+
+    # SCHLAGWORTE
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].str.contains(stichworte_nicht_public_case_true),
+            "PUBLIC_FLAG",
+        ] = False
+
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].str.contains(
+                stichworte_nicht_public_case_false, case=False
+            ),
+            "PUBLIC_FLAG",
+        ] = False
+
+        df.loc[
+            df[firmenname].notna()
+            & (
+                df[firmenname].str.endswith("e.V")
+                | df[firmenname].str.contains("e.v.", case=False, regex=False)
+            ),
+            "PUBLIC_FLAG",
+        ] = False
+
+    # Stiftung
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].str.contains("Stiftung")
+            & (
+                ~(
+                    df[firmenname].notna()
+                    & df[firmenname].str.contains("Stiftung des öffentlichen Rechts")
+                )
+            ),
+            "PUBLIC_FLAG",
+        ] = False
+
+    # Firmenname gleich Name des Ansprechpartners
+    if (vorname != None) & (nachname != None):
+        for firmenname in firmennamen:
+            df.loc[
+                df[firmenname].notna()
+                & df[vorname].notna()
+                & df[nachname].notna()
+                & (
+                    (df[firmenname] == df[vorname] + " " + df[nachname])
+                    | (df[firmenname] == df[nachname] + ", " + df[vorname])
+                    | (
+                        df[firmenname]
+                        .str.replace("med.", "", regex=False)
+                        .str.replace("Dr.", "", regex=False)
+                        .str.replace("Prof.", "", regex=False)
+                        .str.lstrip(" ")
+                        .str.rstrip(" ")
+                        == df[vorname] + " " + df[nachname]
+                    )
+                    | (
+                        df[firmenname]
+                        .str.replace("med.", "", regex=False)
+                        .str.replace("Dr.", "", regex=False)
+                        .str.replace("Prof.", "", regex=False)
+                        .str.lstrip(" ")
+                        .str.rstrip(" ")
+                        == df[nachname] + ", " + df[vorname]
+                    )
+                ),
+                "PUBLIC_FLAG",
+            ] = False
+
+    # Parteien
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna() & df[firmenname].str.contains(liste_parteien_lang),
+            "PUBLIC_FLAG",
+        ] = False
+
+    # LETZTER EINSCHLUSS
+
+    # S/städt. und S/städtisch am Wortanfang
+    for firmenname in firmennamen:
+        df.loc[
+            df[firmenname].notna()
+            & df[firmenname].str.startswith(
+                ("Städt.", "städt.", "Städtisch", "städtisch")
+            ),
+            "PUBLIC_FLAG",
+        ] = True
+
+    df.drop(columns=["in_stadtliste"], inplace=True)
+
+    return None

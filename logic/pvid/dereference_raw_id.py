@@ -3,9 +3,10 @@
 The objective of this script is to map the HNR numbers which refer to DUNS_Nummer/BED_ID to PVIDs.
 
 """
-import pandas as pd
-import numpy as np
 import logging
+
+import numpy as np
+import pandas as pd
 
 ID_OFFSET = 500000000000
 

@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def best_contact_companies(df: pd.DataFrame) -> pd.DataFrame:

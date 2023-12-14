@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def sustain_only_best_company_data(df: pd.DataFrame) -> pd.DataFrame:

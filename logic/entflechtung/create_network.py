@@ -1,7 +1,8 @@
-from typing import List, Any
-import pandas as pd
-import numpy as np
+from typing import Any, List
+
 import networkx as nx
+import numpy as np
+import pandas as pd
 
 
 def deduplicate_companies_nationally(df: pd.DataFrame, node: str) -> pd.Series:

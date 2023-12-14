@@ -1,10 +1,6 @@
-from typing import Tuple, List
-from matrixmatcher import (
-    MatrixField,
-    Neighborhood,
-    MatchMatrix,
-    MatchCase,
-)
+from typing import List, Tuple
+
+from matrixmatcher import MatchCase, MatchMatrix, MatrixField, Neighborhood
 
 
 def get_match_matrix_config(

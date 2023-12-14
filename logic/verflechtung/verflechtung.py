@@ -1,7 +1,8 @@
-import pandas as pd
-import networkx as nx
-from typing import List, Any
 import logging
+from typing import Any, List
+
+import networkx as nx
+import pandas as pd
 
 
 def _add_hnr_grouping(df: pd.DataFrame) -> List[Any]:

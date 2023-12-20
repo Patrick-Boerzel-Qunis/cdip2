@@ -16,7 +16,7 @@ def add_public_flag(
 
     df = df.assign(
         in_stadtliste=is_in_stadtliste(
-            pattern_stadt=_get_pattern_stadt(df_public_stichworte), **_keys
+            pattern=_get_pattern_stadt(df_public_stichworte), **_keys
         )
     )
 
@@ -474,13 +474,13 @@ def is_staedtisch(df: dd.DataFrame, col_name: str) -> dd.Series:
     return row_exists(df, col_name) & staedtisch
 
 
-def is_in_stadtliste(pattern: str, col_names: list[str], *args, **kwargs):
+def is_in_stadtliste(pattern: str, firmennamen: list[str], *args, **kwargs):
     def func(df: dd.DataFrame) -> dd.DataFrame:
         return reduce(
             any_true,
             [
-                _is_stadt_pattern(df, pattern=pattern, col_name=col_name)
-                for col_name in col_names
+                _is_stadt_pattern(df, pattern=pattern, col_name=firmenname)
+                for firmenname in firmennamen
             ],
         )
 

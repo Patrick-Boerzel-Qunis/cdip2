@@ -1,5 +1,4 @@
 import dask.dataframe as dd
-import pandas as pd
 
 
 def rename_columns(df: dd.DataFrame, mapping: dict[str, str]) -> dd.DataFrame:

@@ -1,5 +1,4 @@
 import dask.dataframe as dd
-import pandas as pd
 
 from vst_data_analytics.transformations import rename_columns
 

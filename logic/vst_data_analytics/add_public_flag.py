@@ -30,7 +30,7 @@ def add_public_flag(
             stichworte_public_case_true=_get_stichworte_public_case_true(),
             stichworte_public_case_false=_get_stichworte_public_case_false(),
             stichworte_nicht_public_case_true=_get_stichworte_nicht_public_case_true(),
-            stichworte_nicht_public_case_false=_get_stichworte_nicht_public_case_false(),
+            stichworte_nicht_public_case_false=_get_stichworte_nicht_public_case_false(),  # noqa
             **_keys
         )
     )
@@ -72,7 +72,7 @@ def is_public(
                 stichworte_public_case_true=stichworte_public_case_true,
                 stichworte_public_case_false=stichworte_public_case_false,
             )
-            & ~public_excludes(
+            & ~public_excludes(  # noqa
                 df,
                 rechtsform=rechtsform,
                 firmennamen=firmennamen,
@@ -154,7 +154,9 @@ def is_staatlich(df: dd.DataFrame, col_name: str) -> dd.Series:
             for identifier in anerkannt_identifier
         ],
     )
-    return row_exists(df, col_name) & starts_with_staatlich & ~staatlich_anerkannt
+    return (
+        row_exists(df, col_name) & starts_with_staatlich & ~staatlich_anerkannt  # noqa
+    )
 
 
 def are_any_agentur_arbeit(df: dd.DataFrame, col_names: list[str]) -> dd.Series:
@@ -164,11 +166,11 @@ def are_any_agentur_arbeit(df: dd.DataFrame, col_names: list[str]) -> dd.Series:
 
 
 def is_agentur_arbeit(df: dd.DataFrame, col_name: str) -> dd.Series:
-    is_agentur_arbeit = df[col_name].str.contains("Agentur für Arbeit") & ~df[
+    agentur_arbeit = df[col_name].str.contains("Agentur für Arbeit") & ~df[
         col_name
     ].str.contains("Agentur für Arbeits")
-    is_a_oe_r = df[col_name].str.contains("A.ö.R.", case=False, regex=False)
-    return row_exists(df, col_name) & (is_agentur_arbeit | is_a_oe_r)
+    a_oe_r = df[col_name].str.contains("A.ö.R.", case=False, regex=False)
+    return row_exists(df, col_name) & (agentur_arbeit | a_oe_r)
 
 
 def are_any_in_stichworte(
@@ -222,8 +224,8 @@ def are_any_gemeinde(
 def is_gemeinde(
     df: dd.DataFrame, col_name: str, df_gemeinde: pd.DataFrame
 ) -> dd.Series:
-    is_gemeinde = df[col_name].isin("Gemeinde " + df_gemeinde["Gemeinde"])
-    return row_exists(df, col_name) & is_gemeinde
+    gemeinde = df[col_name].isin("Gemeinde " + df_gemeinde["Gemeinde"])
+    return row_exists(df, col_name) & gemeinde
 
 
 def are_any_bezirk(
@@ -245,10 +247,10 @@ def are_any_bezirk(
 def is_bezirk(
     df: dd.DataFrame, col_name: str, liste_regierungsbezirke: list[str]
 ) -> dd.Series:
-    is_bezirk = df[col_name].isin(
+    bezirk = df[col_name].isin(
         ["Regierungsbezirk " + liste for liste in liste_regierungsbezirke]
     )
-    return row_exists(df, col_name) & is_bezirk
+    return row_exists(df, col_name) & bezirk
 
 
 def are_any_landkreis(
@@ -267,14 +269,14 @@ def are_any_landkreis(
 def is_landkreis(
     df: dd.DataFrame, col_name: str, df_landkreis: pd.DataFrame
 ) -> dd.Series:
-    is_landkreis = (
+    landkreis = (
         df[col_name].isin("Kreis " + df_landkreis["Landkreis"])
         | df[col_name].isin("Landkreis " + df_landkreis["Landkreis"])
         | df[col_name].isin(
             df_landkreis["Landkreis"][df_landkreis["Landkreis"].str.endswith("Kreis")]
         )
     )
-    return row_exists(df, col_name) & is_landkreis
+    return row_exists(df, col_name) & landkreis
 
 
 def is_staedte_stichwort(
@@ -348,8 +350,8 @@ def are_any_partei(
 
 
 def is_partei(df: dd.DataFrame, col_name: str, liste_parteien_lang: str) -> dd.Series:
-    is_in_parteien_list = df[col_name].str.contains(liste_parteien_lang)
-    return row_exists(df, col_name) & is_in_parteien_list
+    in_parteien_list = df[col_name].str.contains(liste_parteien_lang)
+    return row_exists(df, col_name) & in_parteien_list
 
 
 def are_any_partner(
@@ -367,7 +369,7 @@ def are_any_partner(
 def is_partner(
     df: dd.DataFrame, col_name: str, vorname: str, nachname: str
 ) -> dd.Series:
-    is_firmenname = (
+    firmenname_is_name = (
         (df[col_name] == (df[vorname] + " " + df[nachname]))
         | (df[col_name] == (df[nachname] + ", " + df[vorname]))
         | (
@@ -393,7 +395,7 @@ def is_partner(
         row_exists(df, col_name)
         & row_exists(df, vorname)
         & row_exists(df, nachname)
-        & is_firmenname
+        & firmenname_is_name
     )
 
 
@@ -404,9 +406,9 @@ def are_any_stiftung(df: dd.DataFrame, col_names: list[str]) -> dd.Series:
 
 
 def is_stiftung(df: dd.DataFrame, col_name: str) -> dd.Series:
-    is_stiftung = df[col_name].str.contains("Stiftung")
-    is_public_stiftung = df[col_name].str.contains("Stiftung des öffentlichen Rechts")
-    return row_exists(df, col_name) & is_stiftung & ~is_public_stiftung
+    stiftung = df[col_name].str.contains("Stiftung")
+    public_stiftung = df[col_name].str.contains("Stiftung des öffentlichen Rechts")
+    return row_exists(df, col_name) & stiftung & ~public_stiftung
 
 
 def are_any_no_public_stichwort(
@@ -441,11 +443,11 @@ def is_in_no_stichworte(
     case_insensitive = row_exists(df, col_name) & df[col_name].str.contains(
         stichworte_nicht_public_case_false, case=False
     )
-    is_ev = row_exists(df, col_name) & (
+    eingetragener_verein = row_exists(df, col_name) & (
         df[col_name].str.endswith("e.V")
         | df[col_name].str.contains("e.v.", case=False, regex=False)
     )
-    return case_sensitive | case_insensitive | is_ev
+    return case_sensitive | case_insensitive | eingetragener_verein
 
 
 def is_verein_or_kirchlich(df: dd.DataFrame, col_name: str) -> dd.Series:
@@ -465,11 +467,11 @@ def are_any_staedtisch(df: dd.DataFrame, col_names: list[str]) -> dd.Series:
 
 def is_staedtisch(df: dd.DataFrame, col_name: str) -> dd.Series:
     staedtisch_prefixes = ["Städt.", "städt.", "Städtisch", "städtisch"]
-    is_staedtisch = reduce(
+    staedtisch = reduce(
         any_true,
         [df[col_name].str.startswith(prefix) for prefix in staedtisch_prefixes],
     )
-    return row_exists(df, col_name) & is_staedtisch
+    return row_exists(df, col_name) & staedtisch
 
 
 def is_in_stadtliste(pattern: str, col_names: list[str], *args, **kwargs):
@@ -496,7 +498,7 @@ def _is_stadt_pattern(df: dd.DataFrame, pattern: str, col_name: str) -> dd.Serie
 
 
 def _get_stichworte_nicht_public_case_false() -> str:
-    STICHWORTE_NICHT_PUBLIC_CASE_FALSE = [
+    stichworte_nicht_public_case_false = [
         "gewerkschaft",
         "handelskammer",
         "kinderkrippe",
@@ -507,11 +509,11 @@ def _get_stichworte_nicht_public_case_false() -> str:
         "verein",
         "wirtschaftskammer",
     ]
-    return "|".join(STICHWORTE_NICHT_PUBLIC_CASE_FALSE)
+    return "|".join(stichworte_nicht_public_case_false)
 
 
 def _get_stichworte_nicht_public_case_true() -> str:
-    STICHWORTE_NICHT_PUBLIC_CASE_TRUE = [
+    stichworte_nicht_public_case_true = [
         "Bundesarbeitsgemeinschaft",
         "Bundesliga",
         "Bundesverband",
@@ -523,16 +525,16 @@ def _get_stichworte_nicht_public_case_true() -> str:
         "Montessori",
         "Rudolf Steiner",
     ]
-    return "|".join(STICHWORTE_NICHT_PUBLIC_CASE_TRUE)
+    return "|".join(stichworte_nicht_public_case_true)
 
 
 def _get_stichworte_public_case_false() -> str:
-    STICHWORTE_PUBLIC_CASE_FALSE = ["aör", "justizkasse", "gerichtshof"]
-    return "|".join(STICHWORTE_PUBLIC_CASE_FALSE)
+    stichworte_public_case_false = ["aör", "justizkasse", "gerichtshof"]
+    return "|".join(stichworte_public_case_false)
 
 
 def _get_stichworte_public_case_true() -> str:
-    STICHWORTE_PUBLIC_CASE_TRUE = [
+    stichworte_public_case_true = [
         "Amt für",
         "Amtsgericht",
         "Anstalt",
@@ -662,7 +664,7 @@ def _get_stichworte_public_case_true() -> str:
         "städtisch",
         "städtische",
     ]
-    return "|".join(STICHWORTE_PUBLIC_CASE_TRUE)
+    return "|".join(stichworte_public_case_true)
 
 
 def _get_liste_parteien_lang(df: dd.DataFrame) -> str:
@@ -706,7 +708,7 @@ def _get_pattern_stadt(df: dd.DataFrame) -> str:
 def _get_keys(
     df: dd.DataFrame, col_name: str = "Firmenname"
 ) -> dict[str, str | list[str]]:
-    INTERIM_KEYS = {
+    interim_keys = {
         "firmennamen": ["Firmenname", "Handelsname"],
         "rechtsform": "Rechtsform",
         "branche": "Hauptbranche",
@@ -714,11 +716,11 @@ def _get_keys(
         "nachname": "Name",
     }
 
-    FINAL_KEYS = {
+    final_keys = {
         "firmennamen": ["FIRMENNAME", "DNB_HANDELSNAME"],
         "rechtsform": "RECHTSFORM_TEXT",
         "branche": "HAUPTBRANCHE_08",
         "vorname": "VORNAME",
         "nachname": "NAME",
     }
-    return INTERIM_KEYS if col_name in df.columns else FINAL_KEYS
+    return interim_keys if col_name in df.columns else final_keys

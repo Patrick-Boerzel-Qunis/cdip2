@@ -1,8 +1,8 @@
 import dask.dataframe as dd
 
 
-def any_true(a: dd.Series, b: dd.Series) -> dd.Series:
-    return a | b
+def any_true(left: dd.Series, right: dd.Series) -> dd.Series:
+    return left | right
 
 
 def row_exists(df: dd.DataFrame, col_name: str) -> dd.Series:

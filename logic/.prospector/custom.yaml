@@ -1,0 +1,12 @@
+strictness: veryhigh
+
+max-line-length: 88
+
+pylint:
+  disable:
+    - too-many-arguments
+    - too-many-locals
+  options:
+    good-names: df
+    ignored-argument-names: _.*|args|kwargs
+

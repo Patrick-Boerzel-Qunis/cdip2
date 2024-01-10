@@ -1,59 +1,49 @@
-from functools import reduce
-
-from pyspark.sql import SparkSession
-from pyspark.sql import DataFrame
-from pyspark.sql.functions import col
-from pyspark.sql.types import DataType
+import dask.dataframe as dd
 
 from vst_data_analytics.transformations import rename_columns
 
-"""
-Separate Spark logic for loading from business logic, which is written in pandas at
-the moment.
-"""
+
+def get_columns_of_type(type_mappings: dict[str, str], data_type: str) -> list[str]:
+    return [key for key, value in type_mappings.items() if value == data_type]
 
 
-def cast_types(df: DataFrame, type_mappings: dict[str, DataType]):
-    def cast_single(acc: DataFrame, col_definition: tuple[str, DataType]):
-        col_name = col_definition[0]
-        col_type = col_definition[1]
-        return acc.withColumn(col_name, col(col_name).cast(col_type))
-
-    return reduce(cast_single, type_mappings.items(), df)
+def cast_types(df: dd.DataFrame, type_mappings: dict[str, str]) -> dd.DataFrame:
+    df = df.replace("None", None)
+    return df.astype(type_mappings)
 
 
 def read_data(
-    spark: SparkSession,
     path: str,
-    column_definitions: dict[str, dict[str, str | DataType]],
-) -> DataFrame:
-    df = spark.read.format("parquet").load(path)
+    column_definitions: dict[str, dict[str, str]],
+    account_name: str,
+    account_key: str,
+    engine: str = "auto",
+) -> dd.DataFrame:
+    storage_options = {"account_name": account_name, "account_key": account_key}
+    df = dd.read_parquet(path, storage_options=storage_options, engine=engine)
     columns = get_old_columns(column_definitions)
-    df = df.select(*columns)
+    df = df[columns]
     types = get_column_types(column_definitions)
     df = cast_types(df, types)
-    df = df.toPandas()
     column_mapping = get_column_mapping(column_definitions)
     df = rename_columns(df, column_mapping)
     return df
 
 
-def get_old_columns(
-    column_definitions: dict[str, dict[str, str | DataType]]
-) -> list[str]:
-    return [column for column in column_definitions.keys()]
+def get_old_columns(column_definitions: dict[str, dict[str, str]]) -> list[str]:
+    return list(column_definitions.keys())
 
 
 def get_column_types(
-    column_definitions: dict[str, dict[str, str | DataType]]
-) -> dict[str, DataType]:
+    column_definitions: dict[str, dict[str, str]], type_key: str = "type"
+) -> dict[str, str]:
     return {
-        column_name: column_definition["type"]
+        column_name: column_definition[type_key]
         for column_name, column_definition in column_definitions.items()
     }
 
 
-def get_column_mapping(column_definitions: dict[str, dict[str, str | DataType]]):
+def get_column_mapping(column_definitions: dict[str, dict[str, str]]):
     return {
         old_column_name: column_definition["name"]
         for old_column_name, column_definition in column_definitions.items()

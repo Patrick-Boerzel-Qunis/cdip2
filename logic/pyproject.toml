@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "vst-data-analytics"
+version = "0.2.0"
+description = ""
+authors = ["Patrick Börzel <patrick.boerzel@qunis.de>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+pyspark = "^3.5.0"
+pandas = "^2.1.2"
+dask = {version = "^2023.10.1", extras = ["complete"]}
+adlfs = "^2023.10.0"
+networkx = {extras = ["default"], version = "^3.2.1"}
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.11.0"
+isort = "^5.12.0"
+prospector = "^1.10.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

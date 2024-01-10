@@ -1,12 +1,7 @@
 # Databricks notebook source
 import sys
+import dask
 import dask.dataframe as dd
-import dask.array as da
-import dask.bag as db
-
-# COMMAND ----------
-
-user_id = spark.sql('select current_user() as user').collect()[0]['user']
 
 # COMMAND ----------
 
@@ -14,39 +9,40 @@ sys.path.append(f"../logic")
 
 # COMMAND ----------
 
-from vst_data_analytics.mappings import COLUMN_DEFINITIONS, MAP_GENDER, MAP_TITLE
+from vst_data_analytics.mappings import (
+    COLUMN_DEFINITIONS,
+    MAP_GENDER,
+    MAP_TITLE,
+)
 from vst_data_analytics.preparation import (
     read_data,
     cast_types,
     get_column_types,
     get_column_mapping,
 )
-from vst_data_analytics.transformations import index_data, join_data, replace_nan
+from vst_data_analytics.transformations import index_data, join_data, replace_nan, merge_data
 from vst_data_analytics.rules import AUR02_DnB, AUR03_DnB
 
 # COMMAND ----------
 
-version = "00"
+dask.config.set({"dataframe.convert-string": True})
+spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Dask
+# MAGIC Dask storage account  
 
 # COMMAND ----------
 
-path_to=  f"abfss://landing@cdip0dev0std.dfs.core.windows.net/data/01_bisnode_2023_7_V.{version}_0.parquet"
-dask_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
+account_name = "cdip0dev0std"
+account_key = dbutils.secrets.get(scope="cdip-scope", key="dask_key")
 
 # COMMAND ----------
 
-storage_options = {'account_name': 'cdip0dev0std', 'account_key':dask_key}
-
-
-# COMMAND ----------
-
-ddf = dd.read_parquet('az://landing/data/01_bisnode_2023_7_V.00_*.parquet', storage_options=storage_options)
-ddf.head(19)
+LANDING_IN_DIR = "data_october/Abraham_Data"
+LANDING_OUT_DIR = "data_abraham_pipeline"
+TARGET_TABLE = "t_dnb"
 
 # COMMAND ----------
 
@@ -55,22 +51,17 @@ ddf.head(19)
 
 # COMMAND ----------
 
-bisnode_path =  f"abfss://landing@cdip0dev0std.dfs.core.windows.net/data/01_bisnode_2023_7_V.{version}_0.parquet"
+bisnode_path = f"az://landing/{LANDING_IN_DIR}/01_bisnode_*.parquet"
 
 # COMMAND ----------
 
-# df_bisnode = read_data(spark, f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/01_bisnode_2023_7_V.{version}_*.parquet", COLUMN_DEFINITIONS["Bisnode"])
-df_bisnode = read_data(
-    spark,
-    bisnode_path,
-    COLUMN_DEFINITIONS["Bisnode"],
+df_bisnode: dd.DataFrame = read_data(
+    path=bisnode_path,
+    column_definitions=COLUMN_DEFINITIONS["Bisnode"],
+    account_name=account_name,
+    account_key=account_key,
+    engine="pyarrow",
 )
-df_bisnode
-
-# COMMAND ----------
-
-df_bisnode = index_data(df_bisnode, "DUNS_Nummer")
-df_bisnode
 
 # COMMAND ----------
 
@@ -79,87 +70,56 @@ df_bisnode
 
 # COMMAND ----------
 
-# df_bisnode_primus = read_data(spark, f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/02_bisnode_primus_2023_7_V.{version}_*.parquet", COLUMN_DEFINITIONS["BisnodePrimus"])
+bisnode_primus_path = f"az://landing/{LANDING_IN_DIR}/02_bisnode_primus_*.parquet"
+
+# COMMAND ----------
+
 df_bisnode_primus = read_data(
-    spark,
-    f"abfss://landing@vtl0cdip0dev0std.dfs.core.windows.net/cdip_test/data/02_bisnode_primus_2023_7_V.{version}_5.parquet",
-    COLUMN_DEFINITIONS["BisnodePrimus"],
+    path=bisnode_primus_path,
+    column_definitions=COLUMN_DEFINITIONS["BisnodePrimus"],
+    account_name=account_name,
+    account_key=account_key,
+    engine="pyarrow",
 )
-df_bisnode_primus
-
-# COMMAND ----------
-
-df_bisnode_primus = index_data(df_bisnode_primus, "DUNS_Nummer")
-df_bisnode_primus
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Aufbereitung
+# MAGIC # Final DnB data
 
 # COMMAND ----------
 
-df = join_data(df_bisnode, df_bisnode_primus)
-df
+df = merge_data(df_bisnode, df_bisnode_primus, merge_on = "DUNS_Nummer")
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC
-# MAGIC Nullwerte vereinheitlichen
-
-# COMMAND ----------
-
-df = replace_nan(df)
-df
+df = AUR02_DnB(df, MAP_TITLE) # academic titel standardization
+df = AUR03_DnB(df, MAP_GENDER) # Anrede standardisieren
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC
-# MAGIC Akademische Titel standardisieren
+# MAGIC ## Write to table
 
 # COMMAND ----------
 
-df = AUR02_DnB(df, MAP_TITLE)
-df
+tmp_abfss_path = f"abfss://landing@cdip0dev0std.dfs.core.windows.net/{LANDING_OUT_DIR}/{TARGET_TABLE}"
+dbutils.fs.rm(tmp_abfss_path, recurse=True)
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC
-# MAGIC Anrede standardisieren
+dd.to_parquet(df=df,
+              path=f"az://landing/{LANDING_OUT_DIR}/{TARGET_TABLE}/",
+              write_index=False,
+              overwrite = True,
+              storage_options={'account_name': account_name,
+                               'account_key': account_key}
+              )
 
 # COMMAND ----------
 
-df = AUR03_DnB(df, MAP_GENDER)
-df
+spark.read.format("parquet").load(tmp_abfss_path).write.mode("overwrite").option("overwriteSchema", "True").saveAsTable(f"`vtl-dev`.bronze.{TARGET_TABLE}")
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC
-# MAGIC Egntl sollten hier _Nebenbranchen_ als _Listen fünfstelliger-Werte ausgewiesen werden_. Die Funktion ist aber eine noop -> wird hier weggelassen
 
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC Außerdem sollen hier _Beschaeftigte_ und _Segment_ als numerische Werte formatiert werden. Diese sind aber durch das Mapping bereits in den richtigen Type gecastet.
-
-# COMMAND ----------
-
-col_types = {
-    **get_column_types(COLUMN_DEFINITIONS["Bisnode"]),
-    **get_column_types(COLUMN_DEFINITIONS["BisnodePrimus"]),
-}
-col_mappings = {
-    **get_column_mapping(COLUMN_DEFINITIONS["Bisnode"]),
-    **get_column_mapping(COLUMN_DEFINITIONS["BisnodePrimus"]),
-}
-col_types = {
-    col_mappings[col_name]: col_type for col_name, col_type in col_types.items()
-}
-cast_types(spark.createDataFrame(df), col_types).write.mode("overwrite").option(
-    "overwriteSchema", "True"
-).saveAsTable("`vtl-dev`.landing.t_dnb")

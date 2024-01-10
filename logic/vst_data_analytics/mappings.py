@@ -1,375 +1,374 @@
 import numpy as np
-from pyspark.sql.types import IntegerType, FloatType, StringType, DoubleType
 
 COLUMN_DEFINITIONS = {
     "Bisnode": {
         "FIRMENNUMMER": {
             "name": "BisnodeID",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "STATUS": {
             "name": "Status",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "FIRMENNAME": {
             "name": "Firmenname",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "FIRMENTYP_LANGTEXT": {
             "name": "Firmentype",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "HANDELSNAME": {
             "name": "Handelsname",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "DNB_D_U_N_S_NUMMER": {
             "name": "DUNS_Nummer",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "PLZ_STRASSE": {
             "name": "PLZ",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "ORT_STRASSE": {
             "name": "Ort",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "STRASSE": {
             "name": "Strasse",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "HAUSNUMMER": {
             "name": "Hausnummer",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BUNDESLAND": {
             "name": "Bundesland",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "GKZ": {
             "name": "GKZ",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "VORWAHL_TELEFON": {
             "name": "Vorwahl_Telefon",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "TELEFON": {
             "name": "Telefon",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "UMSATZ": {
             "name": "Umsatz",
-            "type": FloatType(),
+            "type": "Float64",
         },
         "UMSATZ_JAHR": {
             "name": "Umsatz_Jahr",
-            "type": FloatType(),
+            "type": "Float64",
         },
         "SEGMENT_DICC": {
             "name": "Segment",
-            "type": FloatType(),
+            "type": "Float64",
         },
         "MARKETABLE": {
             "name": "Marketable",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "HAUPTBRANCHE_08": {
             "name": "Hauptbranche",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "HAUPTBRANCHENTEXT_08": {
             "name": "Hauptbranchentext",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "NEBENBRANCHE_08": {
             "name": "Nebenbranche",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "ANZAHL_NIEDERLASSUNGEN": {
             "name": "Anzahl_Niederlassungen",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "ANZAHL_KONZERNMITGLIEDER": {
             "name": "Anzahl_Konzernmitglieder",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "BESCHAEFTIGTE": {
             "name": "Beschaeftigte",
-            "type": FloatType(),
+            "type": "Float64",
         },
         "DIREKTE_MUTTER_NUMMER": {
             "name": "Direkte_Mutter_Nummer",
-            "type": DoubleType(),
+            "type": "Float64",
         },
         "DIREKTE_MUTTER_LAND": {
             "name": "Direkte_Mutter_Land",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "HoechsteMutterNummer_0": {
             "name": "HNR",
-            "type": DoubleType(),
+            "type": "Float64",
         },
         "RECHTSFORM_TEXT": {
             "name": "Rechtsform",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "EHEMALIGER_FIRMENNAME": {
             "name": "Ehemaliger_Firmenname",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "HANDELSREGISTER": {
             "name": "Register",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
     },
     "BisnodePrimus": {
         "DNB_D_U_N_S_NUMMER": {
             "name": "DUNS_Nummer",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "GESCHLECHT_TEXT_1": {
             "name": "Geschlecht_Text_1",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "GESCHLECHT_TEXT_2": {
             "name": "Geschlecht_Text_2",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "GESCHLECHT_TEXT_3": {
             "name": "Geschlecht_Text_3",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "TITEL_1": {
             "name": "Titel_1",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "TITEL_2": {
             "name": "Titel_2",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "TITEL_3": {
             "name": "Titel_3",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "NAME_1": {
             "name": "Name_1",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "NAME_2": {
             "name": "Name_2",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "NAME_3": {
             "name": "Name_3",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "VORNAME_1": {
             "name": "Vorname_1",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "VORNAME_2": {
             "name": "Vorname_2",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "VORNAME_3": {
             "name": "Vorname_3",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "POSITION_TEXT_1": {
             "name": "Position_Text_1",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "POSITION_TEXT_2": {
             "name": "Position_Text_2",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "POSITION_TEXT_3": {
             "name": "Position_Text_3",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "INTERNET_ADRESSE": {
             "name": "Website",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "EMAIL": {
             "name": "Email",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "FIRMENZENTRALE_AUSLAND": {
             "name": "Firmenzentrale_Ausland",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
     },
     "BeDirect": {
         "BE_ID": {
             "name": "BED_ID",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "BE_FIRMENNAME_GESAMT": {
             "name": "Firmenname",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_PLZ": {
             "name": "PLZ",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_ORT": {
             "name": "Ort",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_STRASSE": {
             "name": "Strasse",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_HAUSNUMMER": {
             "name": "Hausnummer",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_VORWAHL": {
             "name": "Vorwahl_Telefon",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_RUFNUMMER": {
             "name": "Telefon",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_E_MAIL": {
             "name": "Email",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_HOMEPAGE": {
             "name": "Website",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_PRIMAERBRANCHE": {
             "name": "Hauptbranche",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_BRANCHE2": {
             "name": "Nebenbranche_1",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_BRANCHE3": {
             "name": "Nebenbranche_2",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_BRANCHE4": {
             "name": "Nebenbranche_3",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_BRANCHE5": {
             "name": "Nebenbranche_4",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_MITARBEITERSTAFFEL": {
             "name": "Beschaeftigte_Code",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_ANZAHL_NL_FILIALEN": {
             "name": "Anzahl_Niederlassungen",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "HR_TYP": {
             "name": "Register_Type",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "HR_NUMMER": {
             "name": "Register_Nummer",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_UMSATZSTAFFEL": {
             "name": "Umsatz_Code",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "TELEFON_SELECT": {
             "name": "Tel_Select",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "FLAG_QUALITAET_ORG": {
             "name": "Flag_Quality",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_ANREDE": {
             "name": "Geschlecht_Text",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_TITEL": {
             "name": "Titel",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_VORNAME": {
             "name": "Vorname",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_NACHNAME": {
             "name": "Name",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BE_PREFIX": {
             "name": "Prefix_Name",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BIPID_DIREKTE_MUTTER": {
             "name": "Direkte_Mutter_Nummer",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "BIPID_HOECHSTE_MUTTER": {
             "name": "HNR",
-            "type": IntegerType(),
+            "type": "Int64",
         },
         "BE_RECHTSFORM_ID": {
             "name": "Rechtsform",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
     },
     "MapPlzBundesland": {
         "PLZ": {
             "name": "PLZ",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BUNDESLAND": {
             "name": "Bundesland",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
     },
     "MapBedBranche": {
         "BRANCHE": {
             "name": "Hauptbranche",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "BRANCHENTEXT": {
             "name": "Hauptbranchentext",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
     },
     "BisnodeForBeD": {
         "FIRMENNUMMER": {
             "name": "BisnodeID",
-            "type": StringType(),
+            "type": "Int64",
         },
         "DNB_D_U_N_S_NUMMER": {
             "name": "DUNS_Nummer",
-            "type": StringType(),
+            "type": "Int64",
         },
         "BESCHAEFTIGTE": {
             "name": "Beschaeftigte",
-            "type": StringType(),
+            "type": "Float64",
         },
         "UMSATZ": {
             "name": "Umsatz",
-            "type": StringType(),
+            "type": "Float64",
         },
     },
     "Industriescore": {
         "WZ8_H5_CODE": {
             "name": "Hauptbranche",
-            "type": StringType(),
+            "type": "string[pyarrow]",
         },
         "INDUSTRY_SCORE": {
             "name": "Industry_Score",
-            "type": IntegerType(),
+            "type": "Int64",
         },
     },
 }
@@ -396,7 +395,6 @@ MAP_TITLE = {
     "Dr. mult.": "Dr.",
     "Dr. med": "Dr.",
     "Dr. h.c.": "Dr.",
-    "Prof. Dr. med.": "Prof. Dr.",
     "Prof. Dr. Dr. h. c.": "Prof. Dr.",
     "Dr. Ingenieur": "Dr.",
     "Botschafter": np.nan,
@@ -420,29 +418,29 @@ MAP_GENDER = {
 
 MAP_REV_MEDIAN = {
     "00": np.nan,
-    "01": 0.130,
-    "02": 0.170,
-    "03": 0.270,
-    "04": 0.630,
-    "05": 1.935,
-    "06": 5.720,
-    "07": 30.000,
-    "08": 78.316,
-    "09": 670.832,
+    "01": "0.130",
+    "02": "0.170",
+    "03": "0.270",
+    "04": "0.630",
+    "05": "1.935",
+    "06": "5.720",
+    "07": "30.000",
+    "08": "78.316",
+    "09": "670.832",
 }
 
 MAP_EMPL_MEDIAN = {
     "00": np.nan,
-    "01": 2,
-    "02": 6,
-    "03": 12,
-    "04": 26,
-    "05": 61,
-    "06": 121,
-    "07": 251,
-    "08": 590,
-    "09": 1146,
-    "10": 2320,
+    "01": "2",
+    "02": "6",
+    "03": "12",
+    "04": "26",
+    "05": "61",
+    "06": "121",
+    "07": "251",
+    "08": "590",
+    "09": "1146",
+    "10": "2320",
 }
 
 RECHTSREFORM_MAPPING = {

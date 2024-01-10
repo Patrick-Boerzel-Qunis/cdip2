@@ -1,56 +1,53 @@
-from functools import reduce
-
-import pandas as pd
-import numpy as np
+import dask.dataframe as dd
 
 
-def rename_columns(df: pd.DataFrame, mapping: dict[str, str]) -> pd.DataFrame:
+def rename_columns(df: dd.DataFrame, mapping: dict[str, str]) -> dd.DataFrame:
     return df.rename(columns=mapping)
 
 
-def replace_nan(df: pd.DataFrame) -> pd.DataFrame:
-    return df.replace("None", np.NaN).replace("nan", np.NaN)
+def replace_nan(df: dd.DataFrame) -> dd.DataFrame:
+    return df.replace(["None", "nan"], None)
 
 
-def index_data(df: pd.DataFrame, name) -> pd.DataFrame:
+def index_data(df: dd.DataFrame, name) -> dd.DataFrame:
     if df is None or name is None:
         return df
 
     _idx_name: str = df.index.name
 
-    if not name in df.columns and name != _idx_name:
+    if name not in df.columns and name != _idx_name:
         return df
 
     _idx_name_copy: str = f"{name}_index"
     if f"{name}_index" == _idx_name:
         return df
 
-    _model_data: pd.DataFrame = None
+    _model_data: dd.DataFrame = None
     if _idx_name is not None:
         _drop = _idx_name in df.columns or _idx_name_copy in df.columns
         _model_data = df.reset_index(drop=_drop)
     else:
         _model_data = df
-    if not _idx_name_copy in _model_data.columns:
+    if _idx_name_copy not in _model_data.columns:
         _model_data[_idx_name_copy] = _model_data[name]
-    _model_data = _model_data.set_index(_idx_name_copy, verify_integrity=True)
-
+    _model_data = _model_data.set_index(_idx_name_copy)
+    # TC: verify_integrity=True not available in dask
     return _model_data
 
 
 def join_data(
-    df: pd.DataFrame, df_other: pd.DataFrame, join_on: str = None
-) -> pd.DataFrame:
+    df: dd.DataFrame, df_other: dd.DataFrame, join_on: str = None
+) -> dd.DataFrame:
     columns = df_other.columns.difference(df.columns)
     return df.join(df_other[columns], on=join_on, lsuffix="", rsuffix="_right")
 
 
 def merge_data(
-    df_left: pd.DataFrame, df_right: pd.DataFrame, merge_on: str = None
-) -> pd.DataFrame:
+    df_left: dd.DataFrame, df_right: dd.DataFrame, merge_on: str = None
+) -> dd.DataFrame:
     _index_name: str = df_left.index.name
     _index_name_no_copy: str = _index_name
-    _result: pd.DataFrame = None
+    _result: dd.DataFrame = None
 
     if _index_name is None:
         _result = (
